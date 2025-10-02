@@ -20,8 +20,10 @@ serve(async (req) => {
 
     const extractedCards = [];
 
-    // Process each image with Gemini
+    // Process each image with Gemini - each image may contain MULTIPLE cards
     for (const base64Image of images) {
+      console.log("Processing image for multiple business cards...");
+      
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -33,14 +35,39 @@ serve(async (req) => {
           messages: [
             {
               role: "system",
-              content: "You are a business card OCR system. Extract contact information from business card images and return it in JSON format."
+              content: "You are a business card OCR system that excels at identifying and extracting information from MULTIPLE business cards in a single image. You can detect multiple distinct business cards even when they're placed side by side or in a grid layout."
             },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Extract all contact information from this business card. Return ONLY valid JSON with these exact fields: fullName, jobTitle, company, email, phone, website. If any field is not found, use empty string. Do not include any markdown formatting or additional text."
+                  text: `Analyze this image and identify ALL business cards present. There may be multiple cards in this single image.
+
+For EACH business card you find, extract the contact information.
+
+Return ONLY a valid JSON array where each element represents one business card with these exact fields:
+- fullName (string)
+- jobTitle (string)
+- company (string)
+- email (string)
+- phone (string)
+- website (string)
+
+If any field is not found on a card, use an empty string "".
+
+IMPORTANT: 
+- Look for multiple cards in the image - they may be arranged side by side, in a grid, or overlapping
+- Each distinct business card should be a separate object in the array
+- Return an array even if you only find one card: [{"fullName": "...", ...}]
+- Do not include any markdown formatting, explanations, or additional text
+- Return ONLY the JSON array
+
+Example format:
+[
+  {"fullName": "John Doe", "jobTitle": "CEO", "company": "Acme Inc", "email": "john@acme.com", "phone": "+1234567890", "website": "acme.com"},
+  {"fullName": "Jane Smith", "jobTitle": "CTO", "company": "Tech Corp", "email": "jane@tech.com", "phone": "+0987654321", "website": "techcorp.com"}
+]`
                 },
                 {
                   type: "image_url",
@@ -76,6 +103,8 @@ serve(async (req) => {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       
+      console.log("AI Response content:", content);
+      
       if (content) {
         try {
           // Clean the response - remove markdown code blocks if present
@@ -91,31 +120,51 @@ serve(async (req) => {
           }
           jsonStr = jsonStr.trim();
           
-          const cardData = JSON.parse(jsonStr);
-          extractedCards.push({
-            id: crypto.randomUUID(),
-            fullName: cardData.fullName || "",
-            jobTitle: cardData.jobTitle || "",
-            company: cardData.company || "",
-            email: cardData.email || "",
-            phone: cardData.phone || "",
-            website: cardData.website || "",
-          });
+          console.log("Cleaned JSON string:", jsonStr);
+          
+          // Parse the response - expecting an array of cards
+          const cardsArray = JSON.parse(jsonStr);
+          
+          // Ensure we have an array
+          if (Array.isArray(cardsArray)) {
+            console.log(`Found ${cardsArray.length} card(s) in this image`);
+            
+            // Add each card from this image to our results
+            cardsArray.forEach((cardData: any) => {
+              extractedCards.push({
+                id: crypto.randomUUID(),
+                fullName: cardData.fullName || "",
+                jobTitle: cardData.jobTitle || "",
+                company: cardData.company || "",
+                email: cardData.email || "",
+                phone: cardData.phone || "",
+                website: cardData.website || "",
+              });
+            });
+          } else {
+            // If not an array, treat as single card
+            console.log("Response was not an array, treating as single card");
+            extractedCards.push({
+              id: crypto.randomUUID(),
+              fullName: cardsArray.fullName || "",
+              jobTitle: cardsArray.jobTitle || "",
+              company: cardsArray.company || "",
+              email: cardsArray.email || "",
+              phone: cardsArray.phone || "",
+              website: cardsArray.website || "",
+            });
+          }
         } catch (parseError) {
           console.error("Failed to parse card data:", content, parseError);
-          // Add a card with empty data if parsing fails
-          extractedCards.push({
-            id: crypto.randomUUID(),
-            fullName: "",
-            jobTitle: "",
-            company: "",
-            email: "",
-            phone: "",
-            website: "",
-          });
+          console.error("Parse error details:", parseError);
+          // Don't add empty card on error - just skip this image
         }
+      } else {
+        console.log("No content in AI response");
       }
     }
+    
+    console.log(`Total cards extracted: ${extractedCards.length}`);
 
     return new Response(
       JSON.stringify({ cards: extractedCards }),

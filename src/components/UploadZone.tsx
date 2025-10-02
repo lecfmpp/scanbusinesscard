@@ -82,8 +82,8 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
         <div className="text-accent mt-0.5">ℹ️</div>
         <div className="text-sm text-muted-foreground">
           <p className="mb-2">
-            For best results, place cards on a dark background with good lighting. 
-            Process up to 25 cards at once for optimal performance.
+            <strong>Bulk Scanning Tips:</strong> You can place multiple business cards in a single photo (grid layout, side-by-side, etc.). 
+            Our AI will detect and extract ALL cards from each image. Upload up to 25 images for maximum efficiency.
           </p>
           <a href="#" className="text-accent hover:underline">
             Learn more about managing business contacts in our blog
