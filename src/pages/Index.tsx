@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadZone from "@/components/UploadZone";
 import ScanningAnimation from "@/components/ScanningAnimation";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { BusinessCard } from "./Results";
@@ -47,25 +49,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {isProcessing && <ScanningAnimation />}
       
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">
-            MyBusinessCards<span className="text-accent">.ai</span>
-          </h1>
-          <nav className="flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Blog</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">History</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
-              <span>Account</span>
-            </a>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
-      <main className="container mx-auto px-4 py-16">
+      <main className="flex-1 container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4">
             MyBusinessCards<span className="text-accent">.ai</span>
@@ -80,6 +69,8 @@ const Index = () => {
 
         <UploadZone onFilesSelected={processImages} isProcessing={isProcessing} />
       </main>
+
+      <Footer />
     </div>
   );
 };

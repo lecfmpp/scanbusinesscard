@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Copy, Download, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,23 +222,10 @@ const Results = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">
-            MyBusinessCards<span className="text-accent">.ai</span>
-          </h1>
-          <nav className="flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Blog</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">History</a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
-              <span>Account</span>
-            </a>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8">
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -376,6 +365,8 @@ const Results = () => {
           </div>
         </Card>
       </main>
+
+      <Footer />
     </div>
   );
 };
