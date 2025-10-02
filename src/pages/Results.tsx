@@ -3,8 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import { Copy, Download, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Copy, Download, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BusinessCard {
   id: string;
@@ -19,9 +21,11 @@ export interface BusinessCard {
 const Results = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const cards: BusinessCard[] = location.state?.cards || [];
+  const initialCards: BusinessCard[] = location.state?.cards || [];
   
+  const [cards, setCards] = useState<BusinessCard[]>(initialCards);
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
+  const [savingCards, setSavingCards] = useState<Set<string>>(new Set());
 
   const toggleCard = (id: string) => {
     const newSelected = new Set(selectedCards);
@@ -99,6 +103,77 @@ const Results = () => {
     toast.success("CSV file downloaded");
   };
 
+  const updateCardField = (id: string, field: keyof BusinessCard, value: string) => {
+    setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+
+  const saveCard = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId);
+    if (!card) return;
+
+    setSavingCards(prev => new Set(prev).add(cardId));
+
+    try {
+      const { error } = await (supabase as any)
+        .from('business_cards')
+        .upsert({
+          id: card.id,
+          full_name: card.fullName,
+          job_title: card.jobTitle,
+          company: card.company,
+          email: card.email,
+          phone: card.phone,
+          website: card.website,
+        });
+
+      if (error) throw error;
+      toast.success("Card saved successfully");
+    } catch (error) {
+      toast.error("Failed to save card");
+      console.error(error);
+    } finally {
+      setSavingCards(prev => {
+        const next = new Set(prev);
+        next.delete(cardId);
+        return next;
+      });
+    }
+  };
+
+  const saveSelectedCards = async () => {
+    const selected = cards.filter(c => selectedCards.has(c.id));
+    if (selected.length === 0) {
+      toast.error("Please select at least one card");
+      return;
+    }
+
+    setSavingCards(new Set(selected.map(c => c.id)));
+
+    try {
+      const { error } = await (supabase as any)
+        .from('business_cards')
+        .upsert(
+          selected.map(card => ({
+            id: card.id,
+            full_name: card.fullName,
+            job_title: card.jobTitle,
+            company: card.company,
+            email: card.email,
+            phone: card.phone,
+            website: card.website,
+          }))
+        );
+
+      if (error) throw error;
+      toast.success(`Saved ${selected.length} card${selected.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      toast.error("Failed to save cards");
+      console.error(error);
+    } finally {
+      setSavingCards(new Set());
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -129,6 +204,15 @@ const Results = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {selectedCards.size > 1 && (
+                <Button
+                  onClick={saveSelectedCards}
+                  disabled={savingCards.size > 0}
+                >
+                  <Save className="h-4 w-4" />
+                  Save All Selected
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 onClick={copySelected}
@@ -169,6 +253,7 @@ const Results = () => {
                   <th className="p-4 text-left font-semibold text-sm">EMAIL</th>
                   <th className="p-4 text-left font-semibold text-sm">PHONE</th>
                   <th className="p-4 text-left font-semibold text-sm">WEBSITE</th>
+                  <th className="p-4 text-left font-semibold text-sm">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,12 +266,58 @@ const Results = () => {
                         aria-label={`Select ${card.fullName}`}
                       />
                     </td>
-                    <td className="p-4">{card.fullName}</td>
-                    <td className="p-4">{card.jobTitle}</td>
-                    <td className="p-4">{card.company}</td>
-                    <td className="p-4">{card.email}</td>
-                    <td className="p-4">{card.phone}</td>
-                    <td className="p-4">{card.website}</td>
+                    <td className="p-2">
+                      <Input
+                        value={card.fullName}
+                        onChange={(e) => updateCardField(card.id, 'fullName', e.target.value)}
+                        className="min-w-[120px]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <Input
+                        value={card.jobTitle}
+                        onChange={(e) => updateCardField(card.id, 'jobTitle', e.target.value)}
+                        className="min-w-[120px]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <Input
+                        value={card.company}
+                        onChange={(e) => updateCardField(card.id, 'company', e.target.value)}
+                        className="min-w-[120px]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <Input
+                        value={card.email}
+                        onChange={(e) => updateCardField(card.id, 'email', e.target.value)}
+                        className="min-w-[150px]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <Input
+                        value={card.phone}
+                        onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
+                        className="min-w-[120px]"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <Input
+                        value={card.website}
+                        onChange={(e) => updateCardField(card.id, 'website', e.target.value)}
+                        className="min-w-[150px]"
+                      />
+                    </td>
+                    <td className="p-4">
+                      <Button
+                        size="sm"
+                        onClick={() => saveCard(card.id)}
+                        disabled={savingCards.has(card.id)}
+                      >
+                        <Save className="h-4 w-4" />
+                        Save
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
