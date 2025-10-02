@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Copy, Download, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 
 export interface BusinessCard {
   id: string;
@@ -26,6 +27,7 @@ const Results = () => {
   const [cards, setCards] = useState<BusinessCard[]>(initialCards);
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [savingCards, setSavingCards] = useState<Set<string>>(new Set());
+  const [phoneErrors, setPhoneErrors] = useState<Map<string, string>>(new Map());
 
   const toggleCard = (id: string) => {
     const newSelected = new Set(selectedCards);
@@ -104,12 +106,48 @@ const Results = () => {
   };
 
   const updateCardField = (id: string, field: keyof BusinessCard, value: string) => {
-    setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+    // Handle phone number validation and formatting
+    if (field === 'phone') {
+      const errors = new Map(phoneErrors);
+      
+      if (!value.trim()) {
+        errors.delete(id);
+        setPhoneErrors(errors);
+        setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+        return;
+      }
+
+      try {
+        if (isValidPhoneNumber(value)) {
+          const phoneNumber = parsePhoneNumber(value);
+          const formattedPhone = phoneNumber.format('E.164'); // +[country code][number]
+          errors.delete(id);
+          setPhoneErrors(errors);
+          setCards(cards.map(c => c.id === id ? { ...c, [field]: formattedPhone } : c));
+        } else {
+          errors.set(id, 'Invalid phone number format');
+          setPhoneErrors(errors);
+          setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+        }
+      } catch (error) {
+        errors.set(id, 'Invalid phone number. Include country code (e.g., +1 for US)');
+        setPhoneErrors(errors);
+        setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+      }
+    } else {
+      setCards(cards.map(c => c.id === id ? { ...c, [field]: value } : c));
+    }
   };
 
   const saveCard = async (cardId: string) => {
     const card = cards.find(c => c.id === cardId);
     if (!card) return;
+
+    // Check for phone validation errors before saving
+    if (phoneErrors.has(cardId)) {
+      toast.error("Please fix phone number errors before saving");
+      return;
+    }
 
     setSavingCards(prev => new Set(prev).add(cardId));
 
@@ -144,6 +182,13 @@ const Results = () => {
     const selected = cards.filter(c => selectedCards.has(c.id));
     if (selected.length === 0) {
       toast.error("Please select at least one card");
+      return;
+    }
+
+    // Check for phone validation errors in selected cards
+    const hasErrors = selected.some(card => phoneErrors.has(card.id));
+    if (hasErrors) {
+      toast.error("Please fix phone number errors before saving");
       return;
     }
 
@@ -295,11 +340,17 @@ const Results = () => {
                       />
                     </td>
                     <td className="p-2">
-                      <Input
-                        value={card.phone}
-                        onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
-                        className="min-w-[120px]"
-                      />
+                      <div className="flex flex-col gap-1">
+                        <Input
+                          value={card.phone}
+                          onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
+                          className={`min-w-[120px] ${phoneErrors.has(card.id) ? 'border-destructive' : ''}`}
+                          placeholder="+1 234 567 8900"
+                        />
+                        {phoneErrors.has(card.id) && (
+                          <span className="text-xs text-destructive">{phoneErrors.get(card.id)}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-2">
                       <Input
