@@ -83,7 +83,7 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
         <div className="text-sm text-muted-foreground">
           <p className="mb-2">
             For best results, place cards on a dark background with good lighting. 
-            Process up to 10 cards at once for optimal performance.
+            Process up to 25 cards at once for optimal performance.
           </p>
           <a href="#" className="text-accent hover:underline">
             Learn more about managing business contacts in our blog
