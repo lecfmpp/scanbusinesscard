@@ -48,14 +48,14 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-lg p-12 text-center transition-colors",
+          "border-2 border-dashed rounded-lg p-6 md:p-12 text-center transition-colors",
           isDragging ? "border-primary bg-primary/5" : "border-border",
           isProcessing && "pointer-events-none opacity-50"
         )}
       >
-        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-lg font-medium mb-2">Drop business card images here</p>
-        <p className="text-sm text-muted-foreground mb-6">
+        <Upload className="h-8 w-8 md:h-12 md:w-12 mx-auto mb-3 md:mb-4 text-muted-foreground" />
+        <p className="text-base md:text-lg font-medium mb-2">Drop business card images here</p>
+        <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
           or click to browse from your device
         </p>
         

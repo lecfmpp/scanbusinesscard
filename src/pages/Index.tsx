@@ -54,15 +54,15 @@ const Index = () => {
       
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4">
-            MyBusinessCards<span className="text-accent">.ai</span>
+      <main className="flex-1 container mx-auto px-4 py-8 md:py-16">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-5xl font-bold mb-3 md:mb-4">
+            Business Card<span className="text-accent"> to Sheets</span>
           </h1>
-          <h2 className="text-4xl font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4">
             From Photo to Sheet in 60 Seconds
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-base md:text-xl text-muted-foreground px-4">
             Turn Business Cards into Editable Tables with Just a Click
           </p>
         </div>

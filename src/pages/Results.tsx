@@ -225,52 +225,59 @@ const Results = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
+      <main className="flex-1 container mx-auto px-2 md:px-4 py-4 md:py-8">
+        <Card className="p-3 md:p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Results</h2>
-              <p className="text-muted-foreground">
-                {cards.length} business card{cards.length !== 1 ? 's' : ''} extracted. 
+              <h2 className="text-xl md:text-2xl font-bold mb-2">Results</h2>
+              <p className="text-sm md:text-base text-muted-foreground">
+                {cards.length} card{cards.length !== 1 ? 's' : ''} extracted
                 <span className="ml-1">
                   ({selectedCards.size} selected)
                 </span>
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               {selectedCards.size > 1 && (
                 <Button
                   onClick={saveSelectedCards}
                   disabled={savingCards.size > 0}
+                  size="sm"
+                  className="flex-1 md:flex-initial"
                 >
                   <Save className="h-4 w-4" />
-                  Save All Selected
+                  <span className="hidden sm:inline">Save All</span>
                 </Button>
               )}
               <Button
                 variant="secondary"
                 onClick={copySelected}
                 disabled={selectedCards.size === 0}
+                size="sm"
+                className="flex-1 md:flex-initial"
               >
                 <Copy className="h-4 w-4" />
-                Copy Selected
+                <span className="hidden sm:inline">Copy</span>
               </Button>
               <Button
                 variant="secondary"
                 onClick={exportSelected}
                 disabled={selectedCards.size === 0}
+                size="sm"
+                className="flex-1 md:flex-initial"
               >
                 <Download className="h-4 w-4" />
-                Export Selected
+                <span className="hidden sm:inline">Export</span>
               </Button>
-              <Button onClick={() => navigate("/")}>
+              <Button onClick={() => navigate("/")} size="sm" className="flex-1 md:flex-initial">
                 <Upload className="h-4 w-4" />
-                New Scan
+                <span className="hidden sm:inline">New Scan</span>
               </Button>
             </div>
           </div>
 
-          <div className="border rounded-lg overflow-hidden">
+          {/* Desktop Table */}
+          <div className="hidden md:block border rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead className="bg-muted/50 border-b">
                 <tr>
@@ -362,6 +369,80 @@ const Results = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {cards.map((card) => (
+              <Card key={card.id} className="p-4">
+                <div className="flex items-start justify-between mb-4">
+                  <Checkbox
+                    checked={selectedCards.has(card.id)}
+                    onCheckedChange={() => toggleCard(card.id)}
+                    aria-label={`Select ${card.fullName}`}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => saveCard(card.id)}
+                    disabled={savingCards.has(card.id)}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Save
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">FULL NAME</label>
+                    <Input
+                      value={card.fullName}
+                      onChange={(e) => updateCardField(card.id, 'fullName', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">JOB TITLE</label>
+                    <Input
+                      value={card.jobTitle}
+                      onChange={(e) => updateCardField(card.id, 'jobTitle', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">COMPANY</label>
+                    <Input
+                      value={card.company}
+                      onChange={(e) => updateCardField(card.id, 'company', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">EMAIL</label>
+                    <Input
+                      value={card.email}
+                      onChange={(e) => updateCardField(card.id, 'email', e.target.value)}
+                      type="email"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">PHONE</label>
+                    <Input
+                      value={card.phone}
+                      onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
+                      className={phoneErrors.has(card.id) ? 'border-destructive' : ''}
+                      placeholder="+1 234 567 8900"
+                    />
+                    {phoneErrors.has(card.id) && (
+                      <span className="text-xs text-destructive mt-1 block">{phoneErrors.get(card.id)}</span>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1">WEBSITE</label>
+                    <Input
+                      value={card.website}
+                      onChange={(e) => updateCardField(card.id, 'website', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </Card>
       </main>
