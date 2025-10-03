@@ -175,7 +175,7 @@ const Index = () => {
                 Ready to Simplify Your Business Card Management?
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Start using Business Card to Sheets today and experience the efficiency of bulk scanning and instant data export.
+                Start using Scan Business Card today and experience the efficiency of bulk scanning and instant export to Google Sheets, HubSpot, or Slack.
               </p>
             </div>
           </div>
