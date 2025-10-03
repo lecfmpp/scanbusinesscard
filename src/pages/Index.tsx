@@ -11,15 +11,12 @@ import type { BusinessCard } from "./Results";
 import featureBulkScanning from "@/assets/feature-bulk-scanning.jpg";
 import featureDataCapture from "@/assets/feature-data-capture.jpg";
 import featureIntegrations from "@/assets/feature-integrations.jpg";
-
 const Index = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-
   const processImages = async (files: File[]) => {
     setIsProcessing(true);
     toast.info("Processing business cards...");
-
     try {
       // Convert files to base64
       const imagePromises = files.map(file => {
@@ -30,20 +27,25 @@ const Index = () => {
           reader.readAsDataURL(file);
         });
       });
-
       const base64Images = await Promise.all(imagePromises);
 
       // Call edge function to process with Gemini
-      const { data, error } = await supabase.functions.invoke('scan-business-cards', {
-        body: { images: base64Images }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('scan-business-cards', {
+        body: {
+          images: base64Images
+        }
       });
-
       if (error) throw error;
-
       const cards: BusinessCard[] = data.cards;
-      
       toast.success(`Successfully extracted ${cards.length} business card${cards.length !== 1 ? 's' : ''}`);
-      navigate("/results", { state: { cards } });
+      navigate("/results", {
+        state: {
+          cards
+        }
+      });
     } catch (error) {
       console.error("Error processing cards:", error);
       toast.error("Failed to process business cards. Please try again.");
@@ -51,9 +53,7 @@ const Index = () => {
       setIsProcessing(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
+  return <div className="min-h-screen bg-background flex flex-col">
       {isProcessing && <ScanningAnimation />}
       
       <Header />
@@ -62,9 +62,8 @@ const Index = () => {
         {/* Hero Section */}
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">
-              End of Tradeshow? Pocket Full of Business Cards?
-            </h1>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">End of Tradeshow?
+Pocket Full of Business Cards?</h1>
             
             <div className="mt-8 mb-6 flex justify-center">
               <TypingAnimation />
@@ -139,11 +138,7 @@ const Index = () => {
             </div>
             <div className="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-3">
               <div className="flex flex-col">
-                <img 
-                  src={featureBulkScanning} 
-                  alt="Multiple business cards arranged for bulk scanning"
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
-                />
+                <img src={featureBulkScanning} alt="Multiple business cards arranged for bulk scanning" className="w-full h-48 object-cover rounded-lg shadow-md" />
                 <div className="mt-4">
                   <h3 className="text-lg font-semibold">Bulk Scanning</h3>
                   <p className="mt-2 text-base text-muted-foreground">
@@ -152,11 +147,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex flex-col">
-                <img 
-                  src={featureDataCapture} 
-                  alt="Organized contact data in a spreadsheet"
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
-                />
+                <img src={featureDataCapture} alt="Organized contact data in a spreadsheet" className="w-full h-48 object-cover rounded-lg shadow-md" />
                 <div className="mt-4">
                   <h3 className="text-lg font-semibold">Accurate Data Capture</h3>
                   <p className="mt-2 text-base text-muted-foreground">
@@ -165,11 +156,7 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex flex-col">
-                <img 
-                  src={featureIntegrations} 
-                  alt="Integration icons for Google Sheets, HubSpot and Slack"
-                  className="w-full h-48 object-cover rounded-lg shadow-md"
-                />
+                <img src={featureIntegrations} alt="Integration icons for Google Sheets, HubSpot and Slack" className="w-full h-48 object-cover rounded-lg shadow-md" />
                 <div className="mt-4">
                   <h3 className="text-lg font-semibold">Multiple Integrations</h3>
                   <p className="mt-2 text-base text-muted-foreground">
@@ -197,8 +184,6 @@ const Index = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
