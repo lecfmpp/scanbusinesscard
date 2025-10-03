@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-semibold text-[hsl(var(--footer-foreground))] mb-3">Business Card to Sheets</h3>
+            <h3 className="font-semibold text-[hsl(var(--footer-foreground))] mb-3">Scan Business Cards</h3>
             <p className="text-sm text-[hsl(var(--footer-foreground))]/70">
               AI-powered business card scanning and contact management solution.
             </p>
@@ -40,7 +40,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-8 pt-8 border-t text-center text-sm text-[hsl(var(--footer-foreground))]/70">
-          <p>&copy; {new Date().getFullYear()} Business Card to Sheets. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Scan Business Cards. All rights reserved.</p>
         </div>
       </div>
     </footer>

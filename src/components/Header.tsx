@@ -7,7 +7,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img src={logo} alt="Business Card to Sheets Logo" className="h-8 w-8 md:h-10 md:w-10" />
-          <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">Business Card to Sheets</span>
+          <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">Scan Business Cards</span>
         </Link>
         
         <nav className="flex items-center gap-3 md:gap-6">
