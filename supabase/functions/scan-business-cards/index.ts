@@ -51,10 +51,18 @@ Return ONLY a valid JSON array where each element represents one business card w
 - jobTitle (string)
 - company (string)
 - email (string)
-- phone (string)
+- phone (string) - MUST be in international E.164 format with country code (e.g., "+1234567890" for US numbers, "+442071234567" for UK numbers). Include the + symbol and country code.
 - website (string)
 
 If any field is not found on a card, use an empty string "".
+
+CRITICAL PHONE FORMATTING RULES:
+- Always format phone numbers in E.164 international format: +[country code][number]
+- Remove all spaces, dashes, parentheses, and other formatting characters
+- Include the + symbol at the start
+- Detect the country from the business card context (address, company location, area code)
+- Common country codes: US/Canada +1, UK +44, Australia +61, Germany +49, France +33, Japan +81, China +86
+- Examples: "+12125551234" (US), "+442071234567" (UK), "+61298765432" (Australia)
 
 IMPORTANT: 
 - Look for multiple cards in the image - they may be arranged side by side, in a grid, or overlapping
@@ -65,8 +73,8 @@ IMPORTANT:
 
 Example format:
 [
-  {"fullName": "John Doe", "jobTitle": "CEO", "company": "Acme Inc", "email": "john@acme.com", "phone": "+1234567890", "website": "acme.com"},
-  {"fullName": "Jane Smith", "jobTitle": "CTO", "company": "Tech Corp", "email": "jane@tech.com", "phone": "+0987654321", "website": "techcorp.com"}
+  {"fullName": "John Doe", "jobTitle": "CEO", "company": "Acme Inc", "email": "john@acme.com", "phone": "+12125551234", "website": "acme.com"},
+  {"fullName": "Jane Smith", "jobTitle": "CTO", "company": "Tech Corp", "email": "jane@tech.com", "phone": "+442071234567", "website": "techcorp.com"}
 ]`
                 },
                 {
