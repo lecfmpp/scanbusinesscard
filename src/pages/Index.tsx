@@ -63,7 +63,7 @@ const Index = () => {
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">
-              Stop Drowning in Business Cards. Start Winning at Follow-Ups.
+              End of Tradeshow? Pocket Full of Business Cards?
             </h1>
             
             <div className="mt-8 mb-6 flex justify-center">
@@ -71,7 +71,7 @@ const Index = () => {
             </div>
             
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
-              Leave the trade show with leads, not a pile of paper. Scan multiple cards in one shot and instantly export the data to your favorite tools.
+              Leave with leads, not paper. Scan all your cards in one shot and export instantly to your CRM.
             </p>
           </div>
         </section>
