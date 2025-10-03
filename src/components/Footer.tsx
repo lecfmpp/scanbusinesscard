@@ -16,12 +16,12 @@ const Footer = () => {
             <h3 className="font-semibold text-[hsl(var(--footer-foreground))] mb-3">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/privacy" className="text-[hsl(var(--footer-foreground))]/70 hover:text-primary transition-colors">
+                <Link to="/privacy" className="text-[hsl(var(--footer-foreground))]/70 hover:opacity-100 transition-opacity">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-[hsl(var(--footer-foreground))]/70 hover:text-primary transition-colors">
+                <Link to="/terms" className="text-[hsl(var(--footer-foreground))]/70 hover:opacity-100 transition-opacity">
                   Terms of Service
                 </Link>
               </li>
@@ -32,7 +32,7 @@ const Footer = () => {
             <h3 className="font-semibold text-[hsl(var(--footer-foreground))] mb-3">Contact</h3>
             <p className="text-sm text-[hsl(var(--footer-foreground))]/70">
               Questions? Reach out to us at<br />
-              <a href="mailto:support@businesscardtosheets.com" className="text-primary hover:underline break-all">
+              <a href="mailto:support@businesscardtosheets.com" className="text-[hsl(var(--footer-foreground))] hover:opacity-70 transition-opacity break-all">
                 support@businesscardtosheets.com
               </a>
             </p>

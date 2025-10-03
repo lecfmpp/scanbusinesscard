@@ -11,10 +11,10 @@ const Header = () => {
         </Link>
         
         <nav className="flex items-center gap-3 md:gap-6">
-          <Link to="/" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:text-primary transition-colors">
+          <Link to="/" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 transition-opacity">
             Home
           </Link>
-          <Link to="/auth" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:text-primary transition-colors">
+          <Link to="/auth" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 transition-opacity">
             Sign In
           </Link>
         </nav>

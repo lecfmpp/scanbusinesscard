@@ -47,10 +47,10 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    --header-background: 0 0% 100%;
-    --header-foreground: 220 13% 13%;
-    --footer-background: 220 13% 95%;
-    --footer-foreground: 220 13% 13%;
+    --header-background: 48 100% 50%;
+    --header-foreground: 0 0% 0%;
+    --footer-background: 48 100% 50%;
+    --footer-foreground: 0 0% 0%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -91,10 +91,10 @@ All colors MUST be HSL.
     --input: 220 13% 23%;
     --ring: 45 93% 58%;
     
-    --header-background: 220 13% 18%;
-    --header-foreground: 0 0% 97%;
-    --footer-background: 220 13% 23%;
-    --footer-foreground: 0 0% 97%;
+    --header-background: 48 100% 50%;
+    --header-foreground: 0 0% 0%;
+    --footer-background: 48 100% 50%;
+    --footer-foreground: 0 0% 0%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
