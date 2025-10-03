@@ -62,7 +62,8 @@ const Index = () => {
         {/* Hero Section */}
         <section className="py-20 md:py-32">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">A pile of business cards. A single picture. A clean contact list.</h1>
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">A pile of business cards. A single picture. 
+A clean contact list.</h1>
             
             <div className="mt-8 mb-6 flex justify-center">
               <TypingAnimation />
