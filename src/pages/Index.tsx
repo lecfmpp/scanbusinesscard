@@ -10,6 +10,9 @@ import type { BusinessCard } from "./Results";
 import featureBulkScanning from "@/assets/feature-bulk-scanning.jpg";
 import featureDataCapture from "@/assets/feature-data-capture.jpg";
 import featureIntegrations from "@/assets/feature-integrations.jpg";
+import slackIcon from "@/assets/slack-icon.png";
+import hubspotIcon from "@/assets/hubspot-icon.svg";
+import googleSheetsIcon from "@/assets/google-sheets-icon.svg";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -60,11 +63,39 @@ const Index = () => {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-20 md:py-32">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">
+          <div className="container mx-auto px-4 text-center relative">
+            {/* Floating Integration Icons */}
+            <div className="hidden md:block">
+              <img 
+                src={googleSheetsIcon} 
+                alt="Google Sheets" 
+                className="absolute top-0 left-[10%] w-16 h-16 opacity-80 animate-[float_6s_ease-in-out_infinite]"
+                style={{ animationDelay: '0s' }}
+              />
+              <img 
+                src={slackIcon} 
+                alt="Slack" 
+                className="absolute top-[20%] right-[8%] w-14 h-14 opacity-80 animate-[float_5s_ease-in-out_infinite]"
+                style={{ animationDelay: '1s' }}
+              />
+              <img 
+                src={hubspotIcon} 
+                alt="HubSpot" 
+                className="absolute bottom-[10%] left-[5%] w-14 h-14 opacity-80 animate-[float_7s_ease-in-out_infinite]"
+                style={{ animationDelay: '2s' }}
+              />
+              <img 
+                src={googleSheetsIcon} 
+                alt="Google Sheets" 
+                className="absolute bottom-[15%] right-[12%] w-12 h-12 opacity-60 animate-[float_6s_ease-in-out_infinite]"
+                style={{ animationDelay: '3s' }}
+              />
+            </div>
+
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6 relative z-10">
               Stop Drowning in Business Cards. Start Winning at Follow-Ups.
             </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
+            <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground relative z-10">
               Leave the trade show with leads, not a pile of paper. Scan multiple cards in one shot and instantly export the data to your favorite tools.
             </p>
           </div>
