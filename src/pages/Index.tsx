@@ -70,8 +70,8 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Upload Section */}
-        <section className="py-12 md:py-16 bg-muted/30">
+        {/* Upload Section - Hero */}
+        <section className="py-12 md:py-20 bg-gradient-to-b from-background via-muted/20 to-background">
           <div className="container mx-auto px-4">
             <UploadZone onFilesSelected={processImages} isProcessing={isProcessing} />
           </div>

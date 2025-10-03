@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Upload } from "lucide-react";
+import { Camera, CreditCard, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -42,21 +42,36 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
   }, [onFilesSelected]);
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "border-2 border-dashed rounded-lg p-6 md:p-12 text-center transition-colors",
-          isDragging ? "border-primary bg-primary/5" : "border-border",
+          "relative border-2 border-dashed rounded-2xl p-8 md:p-16 text-center transition-all duration-300",
+          "bg-gradient-to-br from-primary/5 via-background to-accent/5",
+          isDragging ? "border-primary bg-primary/10 scale-[1.02]" : "border-primary/30",
           isProcessing && "pointer-events-none opacity-50"
         )}
       >
-        <Upload className="h-8 w-8 md:h-12 md:w-12 mx-auto mb-3 md:mb-4 text-muted-foreground" />
-        <p className="text-base md:text-lg font-medium mb-2">Drop business card images here</p>
-        <p className="text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
-          or click to browse from your device
+        {/* Visual Indicator - Multiple Cards */}
+        <div className="flex justify-center items-center gap-4 mb-6 md:mb-8">
+          <div className="relative">
+            <CreditCard className="h-16 w-16 md:h-20 md:w-20 text-primary/40 rotate-[-12deg]" strokeWidth={1.5} />
+          </div>
+          <div className="relative">
+            <CreditCard className="h-16 w-16 md:h-20 md:w-20 text-primary rotate-[0deg]" strokeWidth={1.5} />
+          </div>
+          <div className="relative">
+            <CreditCard className="h-16 w-16 md:h-20 md:w-20 text-primary/40 rotate-[12deg]" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <h3 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">
+          Scan Multiple Business Cards
+        </h3>
+        <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
+          Take a photo or upload images of your business cards. Our AI will instantly extract all contact information into an organized table.
         </p>
         
         <input
@@ -65,30 +80,28 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
           className="hidden"
           multiple
           accept="image/*"
+          capture="environment"
           onChange={handleFileInput}
           disabled={isProcessing}
         />
         <label htmlFor="file-upload">
-          <Button asChild disabled={isProcessing}>
-            <span>
-              <Upload className="h-4 w-4" />
-              {isProcessing ? "Processing..." : "Upload Business Cards"}
+          <Button 
+            asChild 
+            disabled={isProcessing}
+            size="lg"
+            className="text-base md:text-lg px-8 py-6 md:px-12 md:py-8 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+          >
+            <span className="flex items-center gap-3">
+              <Camera className="h-5 w-5 md:h-6 md:w-6" />
+              {isProcessing ? "Processing Your Cards..." : "Take Photo of Business Cards"}
+              <ArrowRight className="h-5 w-5 md:h-6 md:w-6" />
             </span>
           </Button>
         </label>
-      </div>
 
-      <div className="mt-6 p-4 bg-accent/10 border border-accent/20 rounded-lg flex gap-3">
-        <div className="text-accent mt-0.5">ℹ️</div>
-        <div className="text-sm text-muted-foreground">
-          <p className="mb-2">
-            <strong>Bulk Scanning Tips:</strong> You can place multiple business cards in a single photo (grid layout, side-by-side, etc.). 
-            Our AI will detect and extract ALL cards from each image. Upload up to 25 images for maximum efficiency.
-          </p>
-          <a href="#" className="text-accent hover:underline">
-            Learn more about managing business contacts in our blog
-          </a>
-        </div>
+        <p className="text-xs md:text-sm text-muted-foreground mt-6">
+          Or drag and drop your images here • Supports multiple cards per photo
+        </p>
       </div>
     </div>
   );
