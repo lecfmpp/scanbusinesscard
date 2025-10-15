@@ -32,8 +32,8 @@ const Footer = () => {
             <h3 className="font-semibold text-[hsl(var(--footer-foreground))] mb-3">Contact</h3>
             <p className="text-sm text-[hsl(var(--footer-foreground))]/70">
               Questions? Reach out to us at<br />
-              <a href="mailto:support@businesscardtosheets.com" className="text-[hsl(var(--footer-foreground))] hover:opacity-70 transition-opacity break-all">
-                support@businesscardtosheets.com
+              <a href="mailto:support@scanbusinesscard.com" className="text-[hsl(var(--footer-foreground))] hover:opacity-70 transition-opacity break-all">
+                support@scanbusinesscard.com
               </a>
             </p>
           </div>
