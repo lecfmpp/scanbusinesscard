@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UploadZone from "@/components/UploadZone";
 import ScanningAnimation from "@/components/ScanningAnimation";
@@ -14,11 +14,47 @@ import featureIntegrations from "@/assets/feature-integrations.jpg";
 const Index = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const processImages = async (files: File[]) => {
+
+  // Check for pending images on mount (after user returns from auth)
+  useEffect(() => {
+    const checkPendingImages = async () => {
+      const pendingImages = sessionStorage.getItem('pendingBusinessCardImages');
+      if (pendingImages) {
+        sessionStorage.removeItem('pendingBusinessCardImages');
+        const base64Images = JSON.parse(pendingImages);
+        
+        // Check if user is now logged in
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await processStoredImages(base64Images);
+        }
+      }
+    };
+    checkPendingImages();
+  }, []);
+
+  const processStoredImages = async (base64Images: string[]) => {
     setIsProcessing(true);
     toast.info("Processing business cards...");
     try {
-      // Convert files to base64
+      const { data, error } = await supabase.functions.invoke('scan-business-cards', {
+        body: { images: base64Images }
+      });
+      if (error) throw error;
+      const cards: BusinessCard[] = data.cards;
+      toast.success(`Successfully extracted ${cards.length} business card${cards.length !== 1 ? 's' : ''}`);
+      navigate("/results", { state: { cards } });
+    } catch (error) {
+      console.error("Error processing cards:", error);
+      toast.error("Failed to process business cards. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const processImages = async (files: File[]) => {
+    try {
+      // Convert files to base64 first
       const imagePromises = files.map(file => {
         return new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -29,28 +65,22 @@ const Index = () => {
       });
       const base64Images = await Promise.all(imagePromises);
 
-      // Call edge function to process with Gemini
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('scan-business-cards', {
-        body: {
-          images: base64Images
-        }
-      });
-      if (error) throw error;
-      const cards: BusinessCard[] = data.cards;
-      toast.success(`Successfully extracted ${cards.length} business card${cards.length !== 1 ? 's' : ''}`);
-      navigate("/results", {
-        state: {
-          cards
-        }
-      });
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Store images and redirect to auth
+        sessionStorage.setItem('pendingBusinessCardImages', JSON.stringify(base64Images));
+        toast.info("Please sign in to process your business cards");
+        navigate("/auth?returnTo=/");
+        return;
+      }
+
+      // User is logged in, process immediately
+      await processStoredImages(base64Images);
     } catch (error) {
-      console.error("Error processing cards:", error);
-      toast.error("Failed to process business cards. Please try again.");
-    } finally {
-      setIsProcessing(false);
+      console.error("Error preparing images:", error);
+      toast.error("Failed to prepare images. Please try again.");
     }
   };
   return <div className="min-h-screen bg-background flex flex-col">
