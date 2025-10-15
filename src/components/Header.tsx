@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,9 +29,8 @@ const Header = () => {
   return (
     <header className="border-b bg-[hsl(var(--header-background))]">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={logo} alt="Scan Business Cards Logo" className="h-8 w-8 md:h-10 md:w-10" />
-          <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">Scan Business Cards</span>
+        <Link to="/" className="hover:opacity-80 transition-opacity">
+          <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">ScanBusinessCard</span>
         </Link>
         
         <nav className="flex items-center gap-3 md:gap-6">
