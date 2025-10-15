@@ -54,6 +54,9 @@ const Index = () => {
 
   const processImages = async (files: File[]) => {
     try {
+      // Show immediate feedback about file selection
+      toast.success(`${files.length} business card${files.length !== 1 ? 's' : ''} selected! Preparing for processing...`);
+
       // Convert files to base64 first
       const imagePromises = files.map(file => {
         return new Promise<string>((resolve, reject) => {
@@ -71,7 +74,7 @@ const Index = () => {
       if (!session) {
         // Store images and redirect to auth
         sessionStorage.setItem('pendingBusinessCardImages', JSON.stringify(base64Images));
-        toast.info("Please sign in to process your business cards");
+        toast.info("Your images are ready! Please sign in to process them.");
         navigate("/auth?returnTo=/");
         return;
       }
