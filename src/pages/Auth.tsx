@@ -20,6 +20,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
 
   useEffect(() => {
     const returnTo = searchParams.get("returnTo") || "/";
@@ -71,12 +72,13 @@ export default function Auth() {
     if (error) {
       if (error.message.includes("already registered")) {
         toast.error("This email is already registered. Please log in instead.");
+        setActiveTab("login");
       } else {
         toast.error(error.message);
       }
     } else {
-      toast.success("Account created successfully! You can now log in.");
-      setEmail("");
+      toast.success("Account created! Please check your email to verify your account, then return here to log in.");
+      setActiveTab("login");
       setPassword("");
     }
   };
@@ -155,7 +157,7 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
