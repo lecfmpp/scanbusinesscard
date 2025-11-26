@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { CreditCard } from "lucide-react";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,7 +30,8 @@ const Header = () => {
   return (
     <header className="border-b bg-[hsl(var(--header-background))]">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="hover:opacity-80 transition-opacity">
+        <Link to="/" className="hover:opacity-80 transition-opacity flex items-center gap-2">
+          <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-[hsl(var(--header-foreground))]" />
           <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">ScanBusinessCard</span>
         </Link>
         
