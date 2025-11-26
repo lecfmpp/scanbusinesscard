@@ -93,25 +93,29 @@ const Index = () => {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-20 md:py-32">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl mb-6">A pile of business cards. A single picture. 
-A clean contact list.</h1>
-            
-            <div className="mt-8 mb-6 flex justify-center">
-              <TypingAnimation />
-            </div>
-            
-            <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
-              Leave with leads, not paper. Scan all your cards in one shot and export instantly to your CRM.
-            </p>
-          </div>
-        </section>
-
-        {/* Upload Section - Hero */}
-        <section className="py-12 md:py-20 bg-gradient-to-b from-background via-muted/20 to-background">
+        <section className="py-12 md:py-20 lg:py-32 bg-gradient-to-b from-background via-muted/20 to-background">
           <div className="container mx-auto px-4">
-            <UploadZone onFilesSelected={processImages} isProcessing={isProcessing} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              {/* Left Column - Text Content */}
+              <div className="text-center lg:text-left order-2 lg:order-1">
+                <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-6xl mb-6">
+                  A pile of business cards. A single picture. A clean contact list.
+                </h1>
+                
+                <div className="mt-8 mb-6 flex justify-center lg:justify-start">
+                  <TypingAnimation />
+                </div>
+                
+                <p className="max-w-2xl lg:max-w-none text-lg md:text-xl text-muted-foreground">
+                  Leave with leads, not paper. Scan all your cards in one shot and export instantly to your CRM.
+                </p>
+              </div>
+
+              {/* Right Column - Upload Zone */}
+              <div className="order-1 lg:order-2">
+                <UploadZone onFilesSelected={processImages} isProcessing={isProcessing} />
+              </div>
+            </div>
           </div>
         </section>
 
