@@ -210,11 +210,19 @@ const Index = () => {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Ready to Simplify Your Business Card Management?
+                Ready to call the leads instead of keeping piles of cards in your pocket forever?
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Start using Scan Business Card today and experience the efficiency of bulk scanning and instant export to Google Sheets, HubSpot, or Slack.
               </p>
+              <div className="mt-8">
+                <button 
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-base font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
+                >
+                  Take Photo of Business Cards
+                </button>
+              </div>
             </div>
           </div>
         </section>
