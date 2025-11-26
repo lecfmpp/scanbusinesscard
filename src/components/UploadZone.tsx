@@ -84,20 +84,23 @@ const UploadZone = ({ onFilesSelected, isProcessing }: UploadZoneProps) => {
           onChange={handleFileInput}
           disabled={isProcessing}
         />
-        <label htmlFor="file-upload">
-          <Button 
-            asChild 
-            disabled={isProcessing}
-            size="lg"
-            className="text-base md:text-lg px-8 py-6 md:px-12 md:py-8 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-          >
-            <span className="flex items-center gap-3">
-              <Camera className="h-5 w-5 md:h-6 md:w-6" />
-              {isProcessing ? "Processing Your Cards..." : "Take Photo of Business Cards"}
-              <ArrowRight className="h-5 w-5 md:h-6 md:w-6" />
-            </span>
-          </Button>
-        </label>
+        <div className="flex justify-center">
+          <label htmlFor="file-upload" className="inline-block">
+            <Button 
+              asChild 
+              disabled={isProcessing}
+              size="lg"
+              className="text-sm md:text-lg px-6 py-5 md:px-12 md:py-8 rounded-xl font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+            >
+              <span className="flex items-center gap-2 md:gap-3 whitespace-nowrap">
+                <Camera className="h-4 w-4 md:h-6 md:w-6 flex-shrink-0" />
+                <span className="hidden sm:inline">{isProcessing ? "Processing Your Cards..." : "Take Photo of Business Cards"}</span>
+                <span className="sm:hidden">{isProcessing ? "Processing..." : "Take Photo"}</span>
+                <ArrowRight className="h-4 w-4 md:h-6 md:w-6 flex-shrink-0" />
+              </span>
+            </Button>
+          </label>
+        </div>
 
         <p className="text-xs md:text-sm text-muted-foreground mt-6">
           Or drag and drop your images here • Supports multiple cards per photo
