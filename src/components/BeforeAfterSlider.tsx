@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import businessCardsBefore from "@/assets/business-cards-table.jpg";
-import crmAfter from "@/assets/business-cards-organized.jpg";
+import crmAfter from "@/assets/crm-organized-view.png";
 
 const BeforeAfterSlider = () => {
   const [sliderPosition, setSliderPosition] = useState(50);
