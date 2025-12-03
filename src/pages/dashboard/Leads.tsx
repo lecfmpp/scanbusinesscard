@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Building2, Mail, Phone, Globe } from "lucide-react";
+import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Mail, Phone, Search, Trash2 } from "lucide-react";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 import { useScanCards } from "@/hooks/useScanCards";
 import ScanningAnimation from "@/components/ScanningAnimation";
@@ -18,6 +18,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface BusinessCard {
   id: string;
@@ -44,6 +54,9 @@ const Leads = () => {
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [savingCards, setSavingCards] = useState<Set<string>>(new Set());
   const [phoneErrors, setPhoneErrors] = useState<Map<string, string>>(new Map());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const {
     triggerScan,
@@ -68,7 +81,6 @@ const Leads = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch event if eventId is provided
       if (eventId) {
         const { data: eventData } = await supabase
           .from('events')
@@ -78,7 +90,6 @@ const Leads = () => {
         setEvent(eventData);
       }
 
-      // Fetch cards
       let query = supabase
         .from('business_cards')
         .select('*')
@@ -100,6 +111,18 @@ const Leads = () => {
     }
   };
 
+  const filteredCards = useMemo(() => {
+    if (!searchQuery.trim()) return cards;
+    const query = searchQuery.toLowerCase();
+    return cards.filter(card => 
+      card.full_name.toLowerCase().includes(query) ||
+      card.job_title.toLowerCase().includes(query) ||
+      card.company.toLowerCase().includes(query) ||
+      card.email.toLowerCase().includes(query) ||
+      card.phone.includes(query)
+    );
+  }, [cards, searchQuery]);
+
   const toggleCard = (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     const newSelected = new Set(selectedCards);
@@ -112,10 +135,10 @@ const Leads = () => {
   };
 
   const toggleAll = () => {
-    if (selectedCards.size === cards.length) {
+    if (selectedCards.size === filteredCards.length) {
       setSelectedCards(new Set());
     } else {
-      setSelectedCards(new Set(cards.map(c => c.id)));
+      setSelectedCards(new Set(filteredCards.map(c => c.id)));
     }
   };
 
@@ -185,6 +208,30 @@ const Leads = () => {
     }
   };
 
+  const deleteCard = async () => {
+    if (!deleteCardId) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('business_cards')
+        .delete()
+        .eq('id', deleteCardId);
+
+      if (error) throw error;
+      
+      setCards(cards.filter(c => c.id !== deleteCardId));
+      selectedCards.delete(deleteCardId);
+      setSelectedCards(new Set(selectedCards));
+      toast.success("Lead deleted");
+    } catch {
+      toast.error("Failed to delete lead");
+    } finally {
+      setIsDeleting(false);
+      setDeleteCardId(null);
+    }
+  };
+
   const saveAllSelected = async () => {
     const selected = cards.filter(c => selectedCards.has(c.id));
     if (selected.length === 0) {
@@ -192,7 +239,6 @@ const Leads = () => {
       return;
     }
 
-    // Check for errors in selected cards
     const hasErrors = selected.some(c => phoneErrors.has(c.id));
     if (hasErrors) {
       toast.error("Please fix phone number errors before saving");
@@ -258,6 +304,8 @@ const Leads = () => {
     toast.success("CSV file downloaded");
   };
 
+  const cardToDelete = cards.find(c => c.id === deleteCardId);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -284,6 +332,28 @@ const Leads = () => {
         onEventSelected={handleEventSelected}
       />
 
+      <AlertDialog open={!!deleteCardId} onOpenChange={(open) => !open && setDeleteCardId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{cardToDelete?.full_name || "this lead"}</span>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={deleteCard} 
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -297,7 +367,7 @@ const Leads = () => {
               {event ? event.name : "All Leads"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {cards.length} lead{cards.length !== 1 ? 's' : ''} ({selectedCards.size} selected)
+              {filteredCards.length} lead{filteredCards.length !== 1 ? 's' : ''} ({selectedCards.size} selected)
             </p>
           </div>
         </div>
@@ -307,7 +377,7 @@ const Leads = () => {
             onClick={toggleAll} 
             size="sm"
           >
-            {selectedCards.size === cards.length && cards.length > 0 ? "Deselect All" : "Select All"}
+            {selectedCards.size === filteredCards.length && filteredCards.length > 0 ? "Deselect All" : "Select All"}
           </Button>
           <Button variant="secondary" onClick={saveAllSelected} disabled={selectedCards.size === 0} size="sm">
             <Save className="h-4 w-4 mr-1" />
@@ -328,6 +398,18 @@ const Leads = () => {
         </div>
       </div>
 
+      {cards.length > 0 && (
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search leads by name, company, email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      )}
+
       {cards.length === 0 ? (
         <Card className="p-12 text-center">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -342,10 +424,20 @@ const Leads = () => {
             Scan Cards
           </Button>
         </Card>
+      ) : filteredCards.length === 0 ? (
+        <Card className="p-12 text-center">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No matching leads</h3>
+          <p className="text-muted-foreground">
+            Try adjusting your search query
+          </p>
+        </Card>
       ) : (
         <Card className="overflow-hidden">
           <Accordion type="multiple" className="w-full">
-            {cards.map((card) => (
+            {filteredCards.map((card) => (
               <AccordionItem key={card.id} value={card.id} className="border-b last:border-0">
                 <div className="relative flex items-center gap-3 pl-4 pr-14 py-2 hover:bg-muted/30">
                   <Checkbox 
@@ -358,10 +450,10 @@ const Leads = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{card.full_name || "No name"}</p>
                         <p className="text-sm text-muted-foreground truncate">
-                          {card.job_title && `${card.job_title} • `}{card.company || "No company"}
+                          {card.job_title || "No title"}{card.company && ` • ${card.company}`}
                         </p>
                       </div>
-                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground ml-4">
+                      <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground ml-4">
                         {card.email && (
                           <span className="flex items-center gap-1">
                             <Mail className="h-3 w-3" />
@@ -430,7 +522,16 @@ const Leads = () => {
                       />
                     </div>
                   </div>
-                  <div className="flex justify-end mt-4">
+                  <div className="flex justify-between items-center mt-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setDeleteCardId(card.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
                     <Button 
                       size="sm" 
                       onClick={(e) => saveCard(card.id, e)} 
