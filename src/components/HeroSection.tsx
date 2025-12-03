@@ -261,7 +261,7 @@ export const HeroSection = () => {
         className="hidden"
       />
       
-      <section className="relative min-h-[90vh] gradient-backdrop overflow-hidden">
+      <section className="relative gradient-backdrop overflow-hidden pt-4 pb-8 md:pt-8 md:pb-12">
         {/* Floating decorative elements */}
         <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl rotate-12 animate-float-slow hidden lg:block" />
         <div className="absolute top-40 right-20 w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl -rotate-6 animate-float hidden lg:block" style={{ animationDelay: '1s' }} />
@@ -285,32 +285,29 @@ export const HeroSection = () => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
-          {/* Glass card container */}
-          <div className="glass-card p-8 md:p-12 lg:p-16 max-w-5xl mx-auto">
-            {/* Social proof badge */}
-            <div className="flex justify-center mb-8">
-              <div className="pill-badge">
-                <Users className="w-4 h-4 text-accent" />
-                <span>Trusted by 10k+ Sales Pros</span>
-              </div>
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Social proof badge */}
+          <div className="flex justify-center mb-4 md:mb-6">
+            <div className="pill-badge">
+              <Users className="w-4 h-4 text-accent" />
+              <span>Trusted by 10k+ Sales Pros</span>
             </div>
+          </div>
 
-            {/* Main headline */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display tracking-tight mb-6">
-                Your leads{" "}
-                <span className="highlight-text text-primary">under control</span>.
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Snap a photo of 20+ cards instantly. We digitize and sync them to your CRM in seconds. Never lose another lead from events again.
-              </p>
-            </div>
+          {/* Main headline */}
+          <div className="text-center mb-4 md:mb-6">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display tracking-tight mb-3 md:mb-4">
+              Your leads{" "}
+              <span className="highlight-text text-primary">under control</span>.
+            </h1>
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Snap a photo of 20+ cards instantly. We digitize and sync them to your CRM in seconds.
+            </p>
+          </div>
 
-            {/* iPhone Mockup */}
-            <div className="flex justify-center mt-8 mb-4">
-              <IPhoneMockup onClick={handleMockupClick} />
-            </div>
+          {/* iPhone Mockup */}
+          <div className="flex justify-center">
+            <IPhoneMockup onClick={handleMockupClick} />
           </div>
         </div>
       </section>
