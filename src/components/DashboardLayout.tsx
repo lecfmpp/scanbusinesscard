@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { CreditCard, Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2 } from "lucide-react";
+import { Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import logoIcon from "@/assets/logo-icon.png";
 
 const navItems = [
   { href: "/dashboard", icon: Calendar, label: "Events" },
@@ -45,7 +46,7 @@ const DashboardLayout = () => {
       <aside className="hidden md:flex w-64 flex-col border-r bg-card">
         <div className="p-6 border-b">
           <Link to="/" className="flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-primary" />
+            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7 rounded-lg" />
             <span className="font-bold text-lg">ScanBusinessCard</span>
           </Link>
         </div>
@@ -90,7 +91,7 @@ const DashboardLayout = () => {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b">
         <div className="flex items-center justify-between p-4">
           <Link to="/" className="flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-primary" />
+            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7 rounded-lg" />
             <span className="font-bold">ScanBusinessCard</span>
           </Link>
           <Button

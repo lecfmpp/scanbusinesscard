@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CreditCard, LayoutDashboard, Menu, X, Home, DollarSign, LogOut, LogIn } from "lucide-react";
+import { LayoutDashboard, Menu, X, Home, DollarSign, LogOut, LogIn } from "lucide-react";
+import logoIcon from "@/assets/logo-icon.png";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -34,7 +35,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="hover:opacity-80 transition-opacity flex items-center gap-2" onClick={closeMobileMenu}>
-          <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+          <img src={logoIcon} alt="ScanBusinessCard" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
           <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">ScanBusinessCard</span>
         </Link>
         
