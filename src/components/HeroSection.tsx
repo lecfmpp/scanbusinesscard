@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, CreditCard, CheckCircle, Zap } from "lucide-react";
 import IPhoneMockup from "@/components/IPhoneMockup";
+import businessCardsTable from "@/assets/business-cards-table.jpg";
 import ScanningAnimation from "@/components/ScanningAnimation";
 import SignupModal from "@/components/SignupModal";
 import EventSelectModal from "@/components/EventSelectModal";
@@ -309,6 +310,16 @@ export const HeroSection = () => {
           <div className="flex justify-center">
             <IPhoneMockup onClick={handleMockupClick} />
           </div>
+        </div>
+        
+        {/* Business cards table image */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 md:h-48 overflow-hidden pointer-events-none">
+          <img 
+            src={businessCardsTable} 
+            alt="Business cards scattered on table" 
+            className="w-full h-full object-cover object-top opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         </div>
       </section>
     </>
