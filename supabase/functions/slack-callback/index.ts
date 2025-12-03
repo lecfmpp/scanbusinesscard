@@ -102,7 +102,7 @@ serve(async (req) => {
     }
 
     console.log('Slack integration saved successfully');
-    return Response.redirect(`${frontendUrl}/dashboard/integrations?success=slack`);
+    return Response.redirect(`${frontendUrl}/dashboard/leads?success=slack`);
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
