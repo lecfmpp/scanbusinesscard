@@ -173,10 +173,10 @@ export default function Auth() {
       />
       
       {/* Left side - Branding & Features */}
-      <div className="hidden lg:flex lg:w-1/2 gradient-backdrop p-12 flex-col justify-between relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 gradient-orange p-12 flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
-          <a href="/" className="flex items-center gap-3 mb-12">
-            <img src={logo} alt="ScanBusinessCard" className="h-10" />
+          <a href="/" className="flex items-center gap-3 mb-8">
+            <img src={logo} alt="ScanBusinessCard" className="h-12" />
           </a>
           
           <div className="space-y-6">
