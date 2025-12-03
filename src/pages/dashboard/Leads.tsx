@@ -6,8 +6,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Download, Plus, Save, Loader2, ArrowLeft, Users } from "lucide-react";
+import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera } from "lucide-react";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
+import { useScanCards } from "@/hooks/useScanCards";
+import ScanningAnimation from "@/components/ScanningAnimation";
+import SignupModal from "@/components/SignupModal";
+import EventSelectModal from "@/components/EventSelectModal";
 
 interface BusinessCard {
   id: string;
@@ -34,6 +38,19 @@ const Leads = () => {
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [savingCards, setSavingCards] = useState<Set<string>>(new Set());
   const [phoneErrors, setPhoneErrors] = useState<Map<string, string>>(new Map());
+
+  const {
+    triggerScan,
+    isProcessing,
+    pendingCards,
+    showSignupModal,
+    setShowSignupModal,
+    showEventModal,
+    setShowEventModal,
+    handleSignupSuccess,
+    handleEventSelected,
+    FileInput,
+  } = useScanCards();
 
   useEffect(() => {
     fetchData();
@@ -201,6 +218,23 @@ const Leads = () => {
   }
 
   return (
+    <>
+      {isProcessing && <ScanningAnimation />}
+      <FileInput />
+      
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        leadsCount={pendingCards.length}
+        onSuccess={handleSignupSuccess}
+      />
+      
+      <EventSelectModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        onEventSelected={handleEventSelected}
+      />
+
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -227,8 +261,8 @@ const Leads = () => {
             <Download className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button onClick={() => navigate("/")} size="sm">
-            <Plus className="h-4 w-4 mr-1" />
+          <Button onClick={triggerScan} size="sm">
+            <Camera className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">New Scan</span>
           </Button>
         </div>
@@ -243,8 +277,8 @@ const Leads = () => {
           <p className="text-muted-foreground mb-6">
             Start scanning business cards to add leads
           </p>
-          <Button onClick={() => navigate("/")}>
-            <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={triggerScan}>
+            <Camera className="h-4 w-4 mr-2" />
             Scan Cards
           </Button>
         </Card>
@@ -358,6 +392,7 @@ const Leads = () => {
         </>
       )}
     </div>
+    </>
   );
 };
 
