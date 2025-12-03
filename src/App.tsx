@@ -9,6 +9,11 @@ import Auth from "./pages/Auth";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Pricing from "./pages/Pricing";
+import CompareCamcard from "./pages/CompareCamcard";
+import CompareAbbyy from "./pages/CompareAbbyy";
+import CompareSansan from "./pages/CompareSansan";
+import CompareHubspotScanner from "./pages/CompareHubspotScanner";
+import CompareEvernote from "./pages/CompareEvernote";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +31,11 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/compare/camcard" element={<CompareCamcard />} />
+          <Route path="/compare/abbyy" element={<CompareAbbyy />} />
+          <Route path="/compare/sansan" element={<CompareSansan />} />
+          <Route path="/compare/hubspot-scanner" element={<CompareHubspotScanner />} />
+          <Route path="/compare/evernote" element={<CompareEvernote />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
