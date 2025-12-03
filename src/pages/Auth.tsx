@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import SEO from "@/components/SEO";
 import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logoIcon from "@/assets/logo-icon.png";
 import TestimonialsSection from "@/components/TestimonialsSection";
 
 const emailSchema = z.string().email("Invalid email address");
@@ -175,8 +175,9 @@ export default function Auth() {
       {/* Left side - Branding & Features */}
       <div className="hidden lg:flex lg:w-1/2 gradient-orange p-12 flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
-          <a href="/" className="flex items-center gap-3 mb-8">
-            <img src={logo} alt="ScanBusinessCard" className="h-12" />
+          <a href="/" className="flex items-center gap-2 mb-8">
+            <img src={logoIcon} alt="ScanBusinessCard" className="w-10 h-10" />
+            <span className="text-xl font-bold text-foreground">ScanBusinessCard</span>
           </a>
           
           <div className="space-y-6">
@@ -216,7 +217,8 @@ export default function Auth() {
         {/* Mobile header */}
         <div className="lg:hidden p-4 border-b border-border">
           <a href="/" className="flex items-center gap-2">
-            <img src={logo} alt="ScanBusinessCard" className="h-8" />
+            <img src={logoIcon} alt="ScanBusinessCard" className="w-8 h-8" />
+            <span className="text-lg font-bold text-foreground">ScanBusinessCard</span>
           </a>
         </div>
         
