@@ -48,15 +48,15 @@ const Header = () => {
           </Link>
           {isLoggedIn ? (
             <>
-              <Link to="/dashboard" className="text-sm font-medium text-[hsl(var(--header-foreground))] hover:text-primary transition-colors flex items-center gap-1.5">
+              <Link to="/dashboard" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-full hover:bg-primary/90 transition-colors flex items-center gap-1.5">
                 <LayoutDashboard className="w-4 h-4" />
-                Dashboard
+                My Leads
               </Link>
               <Button 
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                className="text-sm font-medium"
+                className="text-sm font-medium hover:bg-primary hover:text-primary-foreground"
               >
                 Logout
               </Button>
@@ -109,16 +109,16 @@ const Header = () => {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-[hsl(var(--header-foreground))] hover:bg-muted transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                   onClick={closeMobileMenu}
                 >
-                  <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
-                  <span className="font-medium">Dashboard</span>
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span className="font-medium">My Leads</span>
                 </Link>
                 <div className="border-t my-2" />
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors w-full text-left"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-[hsl(var(--header-foreground))] hover:bg-primary hover:text-primary-foreground transition-colors w-full text-left"
                 >
                   <LogOut className="w-5 h-5" />
                   <span className="font-medium">Logout</span>
