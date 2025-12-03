@@ -269,21 +269,21 @@ export const HeroSection = () => {
         <div className="absolute bottom-20 right-10 w-12 h-12 bg-gradient-to-br from-primary/30 to-primary/10 rounded-lg -rotate-12 animate-float hidden lg:block" style={{ animationDelay: '0.5s' }} />
         
         {/* Floating UI elements - Input fields */}
-        <div className="absolute top-[15%] left-[3%] floating-element hidden xl:block" style={{ animationDelay: '0.5s' }}>
+        <div className="absolute top-[18%] left-[18%] floating-element hidden xl:block" style={{ animationDelay: '0.5s' }}>
           <div className="bg-card shadow-xl rounded-lg p-2 border border-border/50 -rotate-6">
             <div className="text-[10px] text-muted-foreground mb-1">Full Name</div>
             <div className="bg-muted/50 rounded px-2 py-1 text-xs font-medium w-32">Sarah Mitchell</div>
           </div>
         </div>
         
-        <div className="absolute top-[25%] right-[4%] floating-element hidden xl:block" style={{ animationDelay: '1.2s' }}>
+        <div className="absolute top-[22%] right-[18%] floating-element hidden xl:block" style={{ animationDelay: '1.2s' }}>
           <div className="bg-card shadow-xl rounded-lg p-2 border border-border/50 rotate-3">
             <div className="text-[10px] text-muted-foreground mb-1">Phone</div>
             <div className="bg-muted/50 rounded px-2 py-1 text-xs font-medium w-28">+1 555-0123</div>
           </div>
         </div>
         
-        <div className="absolute top-[45%] left-[2%] floating-element hidden xl:block" style={{ animationDelay: '2s' }}>
+        <div className="absolute top-[42%] left-[15%] floating-element hidden xl:block" style={{ animationDelay: '2s' }}>
           <div className="bg-card shadow-xl rounded-lg p-2 border border-border/50 rotate-6">
             <div className="text-[10px] text-muted-foreground mb-1">Company</div>
             <div className="bg-muted/50 rounded px-2 py-1 text-xs font-medium w-28">Acme Corp</div>
@@ -291,28 +291,28 @@ export const HeroSection = () => {
         </div>
         
         {/* Floating UI elements - Action buttons */}
-        <div className="absolute top-[55%] right-[3%] floating-element hidden xl:block" style={{ animationDelay: '0.8s' }}>
+        <div className="absolute top-[38%] right-[16%] floating-element hidden xl:block" style={{ animationDelay: '0.8s' }}>
           <div className="bg-primary text-primary-foreground shadow-xl rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-1.5 -rotate-3">
             <Download className="w-3 h-3" />
             Export Leads
           </div>
         </div>
         
-        <div className="absolute bottom-[35%] left-[4%] floating-element hidden xl:block" style={{ animationDelay: '1.8s' }}>
+        <div className="absolute bottom-[32%] left-[20%] floating-element hidden xl:block" style={{ animationDelay: '1.8s' }}>
           <div className="bg-card shadow-xl rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5 border border-border/50 rotate-3">
             <Pencil className="w-3 h-3 text-muted-foreground" />
             Edit Lead
           </div>
         </div>
         
-        <div className="absolute bottom-[25%] right-[5%] floating-element hidden xl:block" style={{ animationDelay: '2.5s' }}>
+        <div className="absolute bottom-[28%] right-[19%] floating-element hidden xl:block" style={{ animationDelay: '2.5s' }}>
           <div className="bg-[#4A154B] text-white shadow-xl rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-1.5 rotate-2">
             <MessageSquare className="w-3 h-3" />
             Send to Slack
           </div>
         </div>
         
-        <div className="absolute bottom-[15%] left-[6%] floating-element hidden xl:block" style={{ animationDelay: '3s' }}>
+        <div className="absolute bottom-[18%] left-[22%] floating-element hidden xl:block" style={{ animationDelay: '3s' }}>
           <div className="bg-[#FF7A59] text-white shadow-xl rounded-lg px-3 py-2 text-xs font-semibold flex items-center gap-1.5 -rotate-6">
             <Send className="w-3 h-3" />
             Send to HubSpot
