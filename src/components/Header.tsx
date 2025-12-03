@@ -35,7 +35,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="hover:opacity-80 transition-opacity flex items-center gap-2" onClick={closeMobileMenu}>
-          <img src={logoIcon} alt="ScanBusinessCard" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
+          <img src={logoIcon} alt="ScanBusinessCard" className="w-7 h-7 md:w-8 md:h-8" />
           <span className="text-base md:text-xl font-bold text-[hsl(var(--header-foreground))]">ScanBusinessCard</span>
         </Link>
         
