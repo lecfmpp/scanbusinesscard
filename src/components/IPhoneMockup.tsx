@@ -33,8 +33,8 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
       </div>
       
       {/* Google Sheets - Bottom Left */}
-      <div className="absolute -left-14 bottom-28 w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.3s] z-10">
-        <img src={googleSheetsIcon} alt="Google Sheets" className="w-9 h-9" />
+      <div className="absolute -left-16 bottom-28 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.3s] z-10">
+        <img src={googleSheetsIcon} alt="Google Sheets" className="w-11 h-11" />
       </div>
 
       {/* iPhone Frame - Realistic proportions */}
