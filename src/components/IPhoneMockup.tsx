@@ -1,7 +1,9 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera } from "lucide-react";
+import { Camera, Users, DollarSign, TrendingUp, Briefcase } from "lucide-react";
 import businessCardsImage from "@/assets/business-cards-organized.jpg";
+import slackIcon from "@/assets/slack-icon.png";
+import hubspotIcon from "@/assets/hubspot-icon.svg";
 
 interface IPhoneMockupProps {
   onClick: () => void;
@@ -17,6 +19,37 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
 
   return (
     <div className="relative">
+      {/* Floating Elements */}
+      {/* Slack Logo - Top Left */}
+      <div className="absolute -left-8 top-8 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite] z-10">
+        <img src={slackIcon} alt="Slack" className="w-9 h-9" />
+      </div>
+      
+      {/* HubSpot Logo - Top Right */}
+      <div className="absolute -right-8 top-16 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.5s] z-10">
+        <img src={hubspotIcon} alt="HubSpot" className="w-9 h-9" />
+      </div>
+      
+      {/* Leads/Users Icon - Bottom Left */}
+      <div className="absolute -left-6 bottom-32 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.3s] z-10">
+        <Users className="w-6 h-6 text-white" />
+      </div>
+      
+      {/* Money/Dollar Icon - Right Side */}
+      <div className="absolute -right-4 bottom-48 w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite_0.7s] z-10">
+        <DollarSign className="w-6 h-6 text-white" />
+      </div>
+      
+      {/* Trending/Growth Icon - Top Center Left */}
+      <div className="absolute -left-12 top-1/3 w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.2s] z-10">
+        <TrendingUp className="w-5 h-5 text-white" />
+      </div>
+      
+      {/* Briefcase/CRM Icon - Bottom Right */}
+      <div className="absolute -right-10 bottom-20 w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.9s] z-10">
+        <Briefcase className="w-6 h-6 text-white" />
+      </div>
+
       {/* iPhone Frame - Realistic proportions */}
       <div className="relative w-[260px] sm:w-[280px] md:w-[300px] mx-auto">
         {/* Phone outer frame */}
@@ -57,9 +90,9 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
                 </div>
               </div>
 
-              {/* Cards detected badge */}
-              <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-md text-white px-2 py-1 rounded-md text-[10px] font-semibold flex items-center gap-1.5 shadow-md shadow-green-500/30 border border-white/20">
-                <div className="w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_4px_1px_rgba(74,222,128,0.6)]" />
+              {/* Cards detected badge - 20% larger */}
+              <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-md text-white px-2.5 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 shadow-md shadow-green-500/30 border border-white/20">
+                <div className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_5px_1px_rgba(74,222,128,0.6)]" />
                 <span>20 Leads detected</span>
               </div>
 
