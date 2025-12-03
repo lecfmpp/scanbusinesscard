@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Link2, Link2Off, ExternalLink, Check, AlertCircle } from "lucide-react";
+import { Link2, Link2Off, ExternalLink, Check, AlertCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import hubspotIcon from "@/assets/hubspot-icon.svg";
 import slackIcon from "@/assets/slack-icon.png";
+import SlackTemplateModal, { DEFAULT_TEMPLATE } from "@/components/SlackTemplateModal";
 
 interface Integration {
   id: string;
   provider: string;
   created_at: string;
-  extra_data: { hub_id?: string; team_name?: string } | null;
+  extra_data: { hub_id?: string; team_name?: string; message_template?: string } | null;
 }
 
 const Integrations = () => {
@@ -30,6 +31,8 @@ const Integrations = () => {
   const [slackTeamName, setSlackTeamName] = useState<string | null>(null);
   const [slackConnecting, setSlackConnecting] = useState(false);
   const [slackDisconnecting, setSlackDisconnecting] = useState(false);
+  const [slackTemplate, setSlackTemplate] = useState<string>(DEFAULT_TEMPLATE);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   
   const [loading, setLoading] = useState(true);
 
@@ -81,11 +84,13 @@ const Integrations = () => {
       const slack = data?.find(i => i.provider === 'slack');
       if (slack) {
         setSlackConnected(true);
-        const extraData = slack.extra_data as { team_name?: string } | null;
+        const extraData = slack.extra_data as { team_name?: string; message_template?: string } | null;
         setSlackTeamName(extraData?.team_name || null);
+        setSlackTemplate(extraData?.message_template || DEFAULT_TEMPLATE);
       } else {
         setSlackConnected(false);
         setSlackTeamName(null);
+        setSlackTemplate(DEFAULT_TEMPLATE);
       }
     } catch (error) {
       console.error('Error fetching integrations:', error);
@@ -193,6 +198,7 @@ const Integrations = () => {
 
       setSlackConnected(false);
       setSlackTeamName(null);
+      setSlackTemplate(DEFAULT_TEMPLATE);
       toast.success('Slack disconnected');
     } catch (error) {
       console.error('Error disconnecting Slack:', error);
@@ -202,14 +208,60 @@ const Integrations = () => {
     }
   };
 
+  const saveSlackTemplate = async (template: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get current integration to preserve other extra_data
+      const { data: integration } = await supabase
+        .from('integrations')
+        .select('extra_data')
+        .eq('user_id', user.id)
+        .eq('provider', 'slack')
+        .single();
+
+      const currentExtraData = (integration?.extra_data as Record<string, unknown>) || {};
+      
+      const { error } = await supabase
+        .from('integrations')
+        .update({
+          extra_data: {
+            ...currentExtraData,
+            message_template: template,
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('provider', 'slack');
+
+      if (error) throw error;
+
+      setSlackTemplate(template);
+      toast.success('Message template saved!');
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast.error('Failed to save template');
+      throw error;
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Integrations</h1>
-        <p className="text-muted-foreground">
-          Connect your favorite tools to sync leads automatically
-        </p>
-      </div>
+    <>
+      <SlackTemplateModal
+        isOpen={showTemplateModal}
+        onClose={() => setShowTemplateModal(false)}
+        template={slackTemplate}
+        onSave={saveSlackTemplate}
+      />
+
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Integrations</h1>
+          <p className="text-muted-foreground">
+            Connect your favorite tools to sync leads automatically
+          </p>
+        </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* HubSpot Card */}
@@ -315,25 +367,35 @@ const Integrations = () => {
                 Loading...
               </Button>
             ) : slackConnected ? (
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <Button
                   variant="outline"
-                  className="flex-1"
-                  onClick={disconnectSlack}
-                  disabled={slackDisconnecting}
+                  className="w-full"
+                  onClick={() => setShowTemplateModal(true)}
                 >
-                  <Link2Off className="h-4 w-4 mr-2" />
-                  {slackDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                  <Settings className="h-4 w-4 mr-2" />
+                  Customize Message
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  asChild
-                >
-                  <a href="https://slack.com" target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={disconnectSlack}
+                    disabled={slackDisconnecting}
+                  >
+                    <Link2Off className="h-4 w-4 mr-2" />
+                    {slackDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    asChild
+                  >
+                    <a href="https://slack.com" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
               </div>
             ) : (
               <Button
@@ -392,7 +454,8 @@ const Integrations = () => {
           </p>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 };
 

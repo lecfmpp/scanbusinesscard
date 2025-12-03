@@ -21,6 +21,25 @@ interface SlackChannel {
   name: string;
 }
 
+const DEFAULT_TEMPLATE = `📇 *New Lead from ScanBusinessCard*
+
+👤 *Name:* {name}
+💼 *Title:* {title}
+🏢 *Company:* {company}
+📧 *Email:* {email}
+📱 *Phone:* {phone}
+🌐 *Website:* {website}`;
+
+function formatMessage(template: string, lead: Lead): string {
+  return template
+    .replace(/{name}/g, lead.full_name || 'N/A')
+    .replace(/{title}/g, lead.job_title || 'N/A')
+    .replace(/{company}/g, lead.company || 'N/A')
+    .replace(/{email}/g, lead.email || 'N/A')
+    .replace(/{phone}/g, lead.phone || 'N/A')
+    .replace(/{website}/g, lead.website || 'N/A');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,6 +88,8 @@ serve(async (req) => {
     }
 
     const accessToken = integration.access_token;
+    const extraData = integration.extra_data as { message_template?: string } | null;
+    const messageTemplate = extraData?.message_template || DEFAULT_TEMPLATE;
 
     // If action is 'list-channels', return available channels
     if (action === 'list-channels') {
@@ -138,48 +159,8 @@ serve(async (req) => {
     const errors: string[] = [];
 
     for (const lead of leads as Lead[]) {
-      // Build formatted message
-      const blocks = [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `📇 *New Lead from ScanBusinessCard*`
-          }
-        },
-        {
-          type: "section",
-          fields: [
-            {
-              type: "mrkdwn",
-              text: `*👤 Name:*\n${lead.full_name || 'N/A'}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*💼 Title:*\n${lead.job_title || 'N/A'}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*🏢 Company:*\n${lead.company || 'N/A'}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*📧 Email:*\n${lead.email || 'N/A'}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*📱 Phone:*\n${lead.phone || 'N/A'}`
-            },
-            {
-              type: "mrkdwn",
-              text: `*🌐 Website:*\n${lead.website || 'N/A'}`
-            }
-          ]
-        },
-        {
-          type: "divider"
-        }
-      ];
+      // Format message using user's custom template
+      const formattedMessage = formatMessage(messageTemplate, lead);
 
       const response = await fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
@@ -189,8 +170,8 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           channel: channelId,
-          blocks: blocks,
-          text: `New lead: ${lead.full_name} - ${lead.company}`, // Fallback text
+          text: formattedMessage,
+          mrkdwn: true,
         }),
       });
 
