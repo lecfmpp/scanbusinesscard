@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Link2, Link2Off, ExternalLink, Check, AlertCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,8 +17,6 @@ interface Integration {
 }
 
 const Integrations = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  
   // HubSpot state
   const [hubspotConnected, setHubspotConnected] = useState(false);
   const [hubspotHubId, setHubspotHubId] = useState<string | null>(null);
@@ -38,24 +35,7 @@ const Integrations = () => {
 
   useEffect(() => {
     fetchIntegrations();
-    
-    // Handle success/error from OAuth callback
-    const success = searchParams.get('success');
-    const error = searchParams.get('error');
-    
-    if (success === 'hubspot') {
-      toast.success('HubSpot connected successfully!');
-      setSearchParams({});
-      fetchIntegrations();
-    } else if (success === 'slack') {
-      toast.success('Slack connected successfully!');
-      setSearchParams({});
-      fetchIntegrations();
-    } else if (error) {
-      toast.error(`Connection failed: ${error}`);
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
+  }, []);
 
   const fetchIntegrations = async () => {
     try {

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet, useSearchParams } from "react-router-dom";
 import { Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import logoIcon from "@/assets/logo-icon.png";
 
 const navItems = [
@@ -16,17 +17,56 @@ const navItems = [
 const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!session) {
+          navigate("/auth");
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
       }
-    };
-    checkAuth();
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Handle OAuth success/error messages from callbacks
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+    
+    if (success === 'hubspot') {
+      toast.success('HubSpot connected successfully!');
+      setSearchParams({});
+      // Navigate to leads page
+      if (!location.pathname.includes('/leads')) {
+        navigate('/dashboard/leads');
+      }
+    } else if (success === 'slack') {
+      toast.success('Slack connected successfully!');
+      setSearchParams({});
+      // Navigate to leads page
+      if (!location.pathname.includes('/leads')) {
+        navigate('/dashboard/leads');
+      }
+    } else if (error) {
+      toast.error(`Connection failed: ${error}`);
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, navigate, location.pathname]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -39,6 +79,14 @@ const DashboardLayout = () => {
     }
     return location.pathname.startsWith(href);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">

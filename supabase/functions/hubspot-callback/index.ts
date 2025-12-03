@@ -113,7 +113,7 @@ serve(async (req) => {
     }
 
     console.log('HubSpot integration saved successfully');
-    return Response.redirect(`${frontendUrl}/dashboard/integrations?success=hubspot`);
+    return Response.redirect(`${frontendUrl}/dashboard/leads?success=hubspot`);
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
