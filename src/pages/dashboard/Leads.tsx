@@ -6,12 +6,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera } from "lucide-react";
+import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Building2, Mail, Phone, Globe } from "lucide-react";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 import { useScanCards } from "@/hooks/useScanCards";
 import ScanningAnimation from "@/components/ScanningAnimation";
 import SignupModal from "@/components/SignupModal";
 import EventSelectModal from "@/components/EventSelectModal";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface BusinessCard {
   id: string;
@@ -94,7 +100,8 @@ const Leads = () => {
     }
   };
 
-  const toggleCard = (id: string) => {
+  const toggleCard = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const newSelected = new Set(selectedCards);
     if (newSelected.has(id)) {
       newSelected.delete(id);
@@ -143,7 +150,8 @@ const Leads = () => {
     }
   };
 
-  const saveCard = async (cardId: string) => {
+  const saveCard = async (cardId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     const card = cards.find(c => c.id === cardId);
     if (!card || phoneErrors.has(cardId)) {
       toast.error("Please fix errors before saving");
@@ -276,7 +284,7 @@ const Leads = () => {
         onEventSelected={handleEventSelected}
       />
 
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           {eventId && (
@@ -335,113 +343,109 @@ const Leads = () => {
           </Button>
         </Card>
       ) : (
-        <>
-          {/* Desktop Table */}
-          <Card className="hidden md:block overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50 border-b">
-                  <tr>
-                    <th className="p-4 text-left">
-                      <Checkbox checked={selectedCards.size === cards.length} onCheckedChange={toggleAll} />
-                    </th>
-                    <th className="p-4 text-left font-semibold text-sm">NAME</th>
-                    <th className="p-4 text-left font-semibold text-sm">TITLE</th>
-                    <th className="p-4 text-left font-semibold text-sm">COMPANY</th>
-                    <th className="p-4 text-left font-semibold text-sm">EMAIL</th>
-                    <th className="p-4 text-left font-semibold text-sm">PHONE</th>
-                    <th className="p-4 text-left font-semibold text-sm">WEBSITE</th>
-                    <th className="p-4 text-left font-semibold text-sm">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cards.map((card) => (
-                    <tr key={card.id} className="border-b last:border-0 hover:bg-muted/30">
-                      <td className="p-4">
-                        <Checkbox checked={selectedCards.has(card.id)} onCheckedChange={() => toggleCard(card.id)} />
-                      </td>
-                      <td className="p-2">
-                        <Input value={card.full_name} onChange={(e) => updateCardField(card.id, 'full_name', e.target.value)} className="min-w-[120px]" />
-                      </td>
-                      <td className="p-2">
-                        <Input value={card.job_title} onChange={(e) => updateCardField(card.id, 'job_title', e.target.value)} className="min-w-[120px]" />
-                      </td>
-                      <td className="p-2">
-                        <Input value={card.company} onChange={(e) => updateCardField(card.id, 'company', e.target.value)} className="min-w-[120px]" />
-                      </td>
-                      <td className="p-2">
-                        <Input value={card.email} onChange={(e) => updateCardField(card.id, 'email', e.target.value)} className="min-w-[150px]" />
-                      </td>
-                      <td className="p-2">
-                        <div className="flex flex-col gap-1">
-                          <Input
-                            value={card.phone}
-                            onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
-                            className={`min-w-[120px] ${phoneErrors.has(card.id) ? 'border-destructive' : ''}`}
-                          />
-                          {phoneErrors.has(card.id) && <span className="text-xs text-destructive">{phoneErrors.get(card.id)}</span>}
-                        </div>
-                      </td>
-                      <td className="p-2">
-                        <Input value={card.website} onChange={(e) => updateCardField(card.id, 'website', e.target.value)} className="min-w-[150px]" />
-                      </td>
-                      <td className="p-4">
-                        <Button size="sm" onClick={() => saveCard(card.id)} disabled={savingCards.has(card.id)}>
-                          <Save className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-4">
+        <Card className="overflow-hidden">
+          <Accordion type="multiple" className="w-full">
             {cards.map((card) => (
-              <Card key={card.id} className="p-4">
-                <div className="flex items-start justify-between mb-4">
-                  <Checkbox checked={selectedCards.has(card.id)} onCheckedChange={() => toggleCard(card.id)} />
-                  <Button size="sm" onClick={() => saveCard(card.id)} disabled={savingCards.has(card.id)}>
-                    <Save className="h-4 w-4 mr-1" /> Save
-                  </Button>
+              <AccordionItem key={card.id} value={card.id} className="border-b last:border-0">
+                <div className="flex items-center gap-3 px-4 py-2 hover:bg-muted/30">
+                  <Checkbox 
+                    checked={selectedCards.has(card.id)} 
+                    onCheckedChange={() => toggleCard(card.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <AccordionTrigger className="flex-1 hover:no-underline py-2">
+                    <div className="flex items-center gap-4 text-left w-full pr-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{card.full_name || "No name"}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {card.job_title && `${card.job_title} • `}{card.company || "No company"}
+                        </p>
+                      </div>
+                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
+                        {card.email && (
+                          <span className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate max-w-[150px]">{card.email}</span>
+                          </span>
+                        )}
+                        {card.phone && (
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{card.phone}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </AccordionTrigger>
                 </div>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">NAME</label>
-                    <Input value={card.full_name} onChange={(e) => updateCardField(card.id, 'full_name', e.target.value)} />
+                <AccordionContent className="px-4 pb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">FULL NAME</label>
+                      <Input 
+                        value={card.full_name} 
+                        onChange={(e) => updateCardField(card.id, 'full_name', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">JOB TITLE</label>
+                      <Input 
+                        value={card.job_title} 
+                        onChange={(e) => updateCardField(card.id, 'job_title', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">COMPANY</label>
+                      <Input 
+                        value={card.company} 
+                        onChange={(e) => updateCardField(card.id, 'company', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">EMAIL</label>
+                      <Input 
+                        value={card.email} 
+                        onChange={(e) => updateCardField(card.id, 'email', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">PHONE</label>
+                      <Input
+                        value={card.phone}
+                        onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
+                        className={phoneErrors.has(card.id) ? 'border-destructive' : ''}
+                      />
+                      {phoneErrors.has(card.id) && (
+                        <span className="text-xs text-destructive mt-1 block">{phoneErrors.get(card.id)}</span>
+                      )}
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground block mb-1.5">WEBSITE</label>
+                      <Input 
+                        value={card.website} 
+                        onChange={(e) => updateCardField(card.id, 'website', e.target.value)} 
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">TITLE</label>
-                    <Input value={card.job_title} onChange={(e) => updateCardField(card.id, 'job_title', e.target.value)} />
+                  <div className="flex justify-end mt-4">
+                    <Button 
+                      size="sm" 
+                      onClick={(e) => saveCard(card.id, e)} 
+                      disabled={savingCards.has(card.id)}
+                    >
+                      {savingCards.has(card.id) ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-1" />
+                      )}
+                      Save Changes
+                    </Button>
                   </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">COMPANY</label>
-                    <Input value={card.company} onChange={(e) => updateCardField(card.id, 'company', e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">EMAIL</label>
-                    <Input value={card.email} onChange={(e) => updateCardField(card.id, 'email', e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">PHONE</label>
-                    <Input
-                      value={card.phone}
-                      onChange={(e) => updateCardField(card.id, 'phone', e.target.value)}
-                      className={phoneErrors.has(card.id) ? 'border-destructive' : ''}
-                    />
-                    {phoneErrors.has(card.id) && <span className="text-xs text-destructive mt-1 block">{phoneErrors.get(card.id)}</span>}
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-1">WEBSITE</label>
-                    <Input value={card.website} onChange={(e) => updateCardField(card.id, 'website', e.target.value)} />
-                  </div>
-                </div>
-              </Card>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
-        </>
+          </Accordion>
+        </Card>
       )}
     </div>
     </>
