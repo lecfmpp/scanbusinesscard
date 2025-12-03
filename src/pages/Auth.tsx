@@ -9,7 +9,7 @@ import { z } from "zod";
 import SEO from "@/components/SEO";
 import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import logo from "@/assets/logo.png";
-import BeforeAfterSlider from "@/components/BeforeAfterSlider";
+import TestimonialsSection from "@/components/TestimonialsSection";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -205,9 +205,9 @@ export default function Auth() {
           </div>
         </div>
         
-        {/* Before/After Slider */}
+        {/* Testimonials */}
         <div className="relative z-10 mt-8">
-          <BeforeAfterSlider />
+          <TestimonialsSection />
         </div>
       </div>
       
