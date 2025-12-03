@@ -1,43 +1,98 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Users, CreditCard, CheckCircle, Zap } from "lucide-react";
-import UploadZone from "@/components/UploadZone";
+import IPhoneMockup from "@/components/IPhoneMockup";
 import ScanningAnimation from "@/components/ScanningAnimation";
+import SignupModal from "@/components/SignupModal";
+import EventSelectModal from "@/components/EventSelectModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import type { BusinessCard } from "@/pages/Results";
+
+interface BusinessCard {
+  id: string;
+  fullName: string;
+  jobTitle: string;
+  company: string;
+  email: string;
+  phone: string;
+  website: string;
+}
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [pendingCards, setPendingCards] = useState<BusinessCard[]>([]);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkPendingImages = async () => {
-      const pendingImages = sessionStorage.getItem('pendingBusinessCardImages');
-      if (pendingImages) {
-        sessionStorage.removeItem('pendingBusinessCardImages');
-        const base64Images = JSON.parse(pendingImages);
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await processStoredImages(base64Images);
-        }
-      }
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
     };
-    checkPendingImages();
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const processStoredImages = async (base64Images: string[]) => {
+  // Check for pending images after login (for users who were redirected to signup modal)
+  useEffect(() => {
+    const processPendingAfterLogin = async () => {
+      if (!isLoggedIn) return;
+      
+      const pendingImages = sessionStorage.getItem('pendingBusinessCardImages');
+      const pendingEventId = sessionStorage.getItem('pendingEventId');
+      
+      if (pendingImages && pendingEventId) {
+        sessionStorage.removeItem('pendingBusinessCardImages');
+        sessionStorage.removeItem('pendingEventId');
+        
+        const base64Images = JSON.parse(pendingImages);
+        await processAndSaveCards(base64Images, pendingEventId);
+      }
+    };
+    
+    processPendingAfterLogin();
+  }, [isLoggedIn]);
+
+  const processImages = async (base64Images: string[]) => {
     setIsProcessing(true);
     toast.info("Processing business cards...");
+    
     try {
       const { data, error } = await supabase.functions.invoke('scan-business-cards', {
         body: { images: base64Images }
       });
+      
       if (error) throw error;
+      
       const cards: BusinessCard[] = data.cards;
-      toast.success(`Successfully extracted ${cards.length} business card${cards.length !== 1 ? 's' : ''}`);
-      navigate("/results", { state: { cards } });
+      
+      if (cards.length === 0) {
+        toast.error("No business cards detected. Please try again with a clearer image.");
+        return;
+      }
+      
+      toast.success(`Found ${cards.length} business card${cards.length !== 1 ? 's' : ''}!`);
+      
+      // Store cards temporarily
+      setPendingCards(cards);
+      
+      if (!isLoggedIn) {
+        // Store images for after signup
+        sessionStorage.setItem('pendingBusinessCardImages', JSON.stringify(base64Images));
+        setShowSignupModal(true);
+      } else {
+        // Show event selection modal
+        setShowEventModal(true);
+      }
     } catch (error) {
       console.error("Error processing cards:", error);
       toast.error("Failed to process business cards. Please try again.");
@@ -46,36 +101,165 @@ export const HeroSection = () => {
     }
   };
 
-  const processImages = async (files: File[]) => {
+  const processAndSaveCards = async (base64Images: string[], eventId: string) => {
+    setIsProcessing(true);
+    
     try {
-      toast.success(`${files.length} business card${files.length !== 1 ? 's' : ''} selected! Preparing for processing...`);
-      const imagePromises = files.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
-      const base64Images = await Promise.all(imagePromises);
-      const { data: { session } } = await supabase.auth.getSession();
+      // If we already have pending cards, use them
+      let cardsToSave = pendingCards;
       
-      if (!session) {
-        sessionStorage.setItem('pendingBusinessCardImages', JSON.stringify(base64Images));
-        toast.info("Your images are ready! Please sign in to process them.");
-        navigate("/auth?returnTo=/");
-        return;
+      // If no pending cards (e.g., after login redirect), process the images again
+      if (cardsToSave.length === 0) {
+        const { data, error } = await supabase.functions.invoke('scan-business-cards', {
+          body: { images: base64Images }
+        });
+        
+        if (error) throw error;
+        cardsToSave = data.cards;
       }
-      await processStoredImages(base64Images);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
+      // Save cards to database
+      const cardsToInsert = cardsToSave.map(card => ({
+        id: card.id,
+        user_id: user.id,
+        event_id: eventId,
+        full_name: card.fullName,
+        job_title: card.jobTitle,
+        company: card.company,
+        email: card.email,
+        phone: card.phone,
+        website: card.website,
+      }));
+      
+      const { error: insertError } = await supabase
+        .from('business_cards')
+        .insert(cardsToInsert);
+      
+      if (insertError) throw insertError;
+      
+      toast.success(`Saved ${cardsToSave.length} lead${cardsToSave.length !== 1 ? 's' : ''} to your CRM!`);
+      setPendingCards([]);
+      navigate(`/dashboard/leads/${eventId}`);
     } catch (error) {
-      console.error("Error preparing images:", error);
-      toast.error("Failed to prepare images. Please try again.");
+      console.error("Error saving cards:", error);
+      toast.error("Failed to save cards. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    toast.success(`${files.length} image${files.length !== 1 ? 's' : ''} selected!`);
+    
+    const imagePromises = files.map(file => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+    
+    const base64Images = await Promise.all(imagePromises);
+    await processImages(base64Images);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSignupSuccess = async (eventId: string) => {
+    setShowSignupModal(false);
+    sessionStorage.setItem('pendingEventId', eventId);
+    
+    // Get stored images and process them
+    const pendingImages = sessionStorage.getItem('pendingBusinessCardImages');
+    if (pendingImages) {
+      const base64Images = JSON.parse(pendingImages);
+      sessionStorage.removeItem('pendingBusinessCardImages');
+      sessionStorage.removeItem('pendingEventId');
+      await processAndSaveCards(base64Images, eventId);
+    }
+  };
+
+  const handleEventSelected = async (eventId: string) => {
+    setShowEventModal(false);
+    setSelectedEventId(eventId);
+    
+    // Save the pending cards with selected event
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || pendingCards.length === 0) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const cardsToInsert = pendingCards.map(card => ({
+        id: card.id,
+        user_id: user.id,
+        event_id: eventId,
+        full_name: card.fullName,
+        job_title: card.jobTitle,
+        company: card.company,
+        email: card.email,
+        phone: card.phone,
+        website: card.website,
+      }));
+      
+      const { error } = await supabase
+        .from('business_cards')
+        .insert(cardsToInsert);
+      
+      if (error) throw error;
+      
+      toast.success(`Saved ${pendingCards.length} lead${pendingCards.length !== 1 ? 's' : ''} to your CRM!`);
+      setPendingCards([]);
+      navigate(`/dashboard/leads/${eventId}`);
+    } catch (error) {
+      console.error("Error saving cards:", error);
+      toast.error("Failed to save cards. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleMockupClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
     <>
       {isProcessing && <ScanningAnimation />}
+      
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        leadsCount={pendingCards.length}
+        onSuccess={handleSignupSuccess}
+      />
+      
+      <EventSelectModal
+        isOpen={showEventModal}
+        onClose={() => setShowEventModal(false)}
+        onEventSelected={handleEventSelected}
+      />
+      
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
       
       <section className="relative min-h-[90vh] gradient-backdrop overflow-hidden">
         {/* Floating decorative elements */}
@@ -123,23 +307,9 @@ export const HeroSection = () => {
               </p>
             </div>
 
-            {/* CTA Button */}
-            <div className="flex justify-center mb-12">
-              <Button
-                size="lg"
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-full px-8 py-6 text-lg font-semibold shadow-lg"
-                onClick={() => document.getElementById('upload-zone')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-                Start Scanning Free
-              </Button>
-            </div>
-
-            {/* Upload Zone */}
-            <div id="upload-zone">
-              <UploadZone onFilesSelected={processImages} isProcessing={isProcessing} />
+            {/* iPhone Mockup */}
+            <div className="flex justify-center mt-8 mb-4">
+              <IPhoneMockup onClick={handleMockupClick} />
             </div>
           </div>
         </div>
