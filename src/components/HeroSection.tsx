@@ -297,11 +297,11 @@ export const HeroSection = () => {
           {/* Main headline */}
           <div className="text-center mb-4 md:mb-6">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display tracking-tight mb-3 md:mb-4">
-              Your leads{" "}
-              <span className="highlight-text text-primary">under control</span>.
+              Ditch the card pile.{" "}
+              <span className="highlight-text text-primary">Close more deals.</span>
             </h1>
             <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Snap a photo of 20+ cards instantly. We digitize and sync them to your CRM in seconds.
+              Back from a trade show with 50 business cards stuffed in your pocket? Snap one photo. Get every lead in your CRM before your competitors even leave the venue.
             </p>
           </div>
 
