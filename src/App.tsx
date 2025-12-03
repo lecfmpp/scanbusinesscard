@@ -19,6 +19,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import Events from "./pages/dashboard/Events";
 import Leads from "./pages/dashboard/Leads";
 import Billing from "./pages/dashboard/Billing";
+import Integrations from "./pages/dashboard/Integrations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="events" element={<Events />} />
               <Route path="leads" element={<Leads />} />
               <Route path="leads/:eventId" element={<Leads />} />
+              <Route path="integrations" element={<Integrations />} />
               <Route path="billing" element={<Billing />} />
             </Route>
             

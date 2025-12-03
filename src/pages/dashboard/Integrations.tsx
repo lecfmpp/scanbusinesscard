@@ -1,0 +1,272 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Link2, Link2Off, ExternalLink, Check, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import hubspotIcon from "@/assets/hubspot-icon.svg";
+
+interface Integration {
+  id: string;
+  provider: string;
+  created_at: string;
+  extra_data: { hub_id?: string } | null;
+}
+
+const Integrations = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [hubspotConnected, setHubspotConnected] = useState(false);
+  const [hubspotHubId, setHubspotHubId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  useEffect(() => {
+    fetchIntegrations();
+    
+    // Handle success/error from OAuth callback
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+    
+    if (success === 'hubspot') {
+      toast.success('HubSpot connected successfully!');
+      setSearchParams({});
+      fetchIntegrations();
+    } else if (error) {
+      toast.error(`Connection failed: ${error}`);
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
+
+  const fetchIntegrations = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('integrations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('provider', 'hubspot')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setHubspotConnected(true);
+        const extraData = data.extra_data as { hub_id?: string } | null;
+        setHubspotHubId(extraData?.hub_id || null);
+      } else {
+        setHubspotConnected(false);
+        setHubspotHubId(null);
+      }
+    } catch (error) {
+      console.error('Error fetching integrations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const connectHubspot = async () => {
+    setConnecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to connect HubSpot');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('hubspot-oauth', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No OAuth URL returned');
+      }
+    } catch (error) {
+      console.error('Error connecting HubSpot:', error);
+      toast.error('Failed to start HubSpot connection');
+      setConnecting(false);
+    }
+  };
+
+  const disconnectHubspot = async () => {
+    setDisconnecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke('hubspot-disconnect', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setHubspotConnected(false);
+      setHubspotHubId(null);
+      toast.success('HubSpot disconnected');
+    } catch (error) {
+      console.error('Error disconnecting HubSpot:', error);
+      toast.error('Failed to disconnect HubSpot');
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Integrations</h1>
+        <p className="text-muted-foreground">
+          Connect your favorite tools to sync leads automatically
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* HubSpot Card */}
+        <Card className={hubspotConnected ? "border-green-500/50" : ""}>
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+            <div className="h-12 w-12 rounded-lg bg-[#ff7a59]/10 flex items-center justify-center">
+              <img src={hubspotIcon} alt="HubSpot" className="h-8 w-8" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg flex items-center gap-2">
+                HubSpot
+                {hubspotConnected && (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                    <Check className="h-3 w-3 mr-1" />
+                    Connected
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>CRM & Marketing Platform</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Sync your scanned business cards directly to HubSpot CRM as contacts.
+            </p>
+            
+            {hubspotConnected && hubspotHubId && (
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2">
+                Portal ID: {hubspotHubId}
+              </div>
+            )}
+
+            {loading ? (
+              <Button disabled className="w-full">
+                Loading...
+              </Button>
+            ) : hubspotConnected ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={disconnectHubspot}
+                  disabled={disconnecting}
+                >
+                  <Link2Off className="h-4 w-4 mr-2" />
+                  {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                >
+                  <a href="https://app.hubspot.com" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="w-full bg-[#ff7a59] hover:bg-[#ff7a59]/90"
+                onClick={connectHubspot}
+                disabled={connecting}
+              >
+                <Link2 className="h-4 w-4 mr-2" />
+                {connecting ? 'Connecting...' : 'Connect HubSpot'}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Coming Soon Cards */}
+        <Card className="opacity-60">
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+              <span className="text-2xl">📊</span>
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg flex items-center gap-2">
+                Google Sheets
+                <Badge variant="secondary">Coming Soon</Badge>
+              </CardTitle>
+              <CardDescription>Spreadsheet</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Export leads directly to Google Sheets for easy collaboration.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="opacity-60">
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+              <span className="text-2xl">💬</span>
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg flex items-center gap-2">
+                Slack
+                <Badge variant="secondary">Coming Soon</Badge>
+              </CardTitle>
+              <CardDescription>Team Communication</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Get instant notifications when new leads are scanned.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Help Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            Need Help?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground space-y-2">
+          <p>
+            Having trouble connecting? Make sure you're logged into the correct HubSpot account
+            and have the necessary permissions to create contacts.
+          </p>
+          <p>
+            Contact us at{" "}
+            <a href="mailto:support@scanbusinesscard.com" className="text-primary hover:underline">
+              support@scanbusinesscard.com
+            </a>{" "}
+            for assistance.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default Integrations;
