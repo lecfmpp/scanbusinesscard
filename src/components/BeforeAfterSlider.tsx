@@ -33,7 +33,7 @@ const BeforeAfterSlider = () => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-lg">
       <div
         ref={containerRef}
         className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden cursor-ew-resize select-none shadow-2xl"
