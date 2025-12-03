@@ -106,11 +106,11 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
       </div>
 
       {/* CTA Button - Overlaying the phone */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-[120%]">
         <Button
           onClick={handleClick}
           size="lg"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6 py-7 text-base md:text-lg font-bold shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:scale-105 transition-all duration-300 whitespace-nowrap"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-7 text-base md:text-lg font-bold shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:scale-105 transition-all duration-300 whitespace-nowrap"
         >
           <Camera className="w-5 h-5 mr-2" />
           Capture My Leads

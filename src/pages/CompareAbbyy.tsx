@@ -78,33 +78,33 @@ const CompareAbbyy = () => {
           <div className="max-w-4xl mx-auto mb-16">
             <h2 className="text-2xl font-bold font-display text-center mb-8">Feature Comparison</h2>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-xs sm:text-sm md:text-base">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-4 px-4">Feature</th>
-                    <th className="text-center py-4 px-4">ABBYY BCR</th>
-                    <th className="text-center py-4 px-4 bg-primary/5">ScanBusinessCard</th>
+                    <th className="text-left py-2 px-2 sm:py-4 sm:px-4">Feature</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4">ABBYY</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4 bg-primary/5">Us</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
                     { feature: "Bulk Scanning", abbyy: false, sbc: true },
-                    { feature: "Cards per photo", abbyy: "1", sbc: "20+" },
+                    { feature: "Cards/photo", abbyy: "1", sbc: "20+" },
                     { feature: "OCR Accuracy", abbyy: "High", sbc: "95%+" },
-                    { feature: "Google Sheets Export", abbyy: false, sbc: true },
+                    { feature: "Sheets Export", abbyy: false, sbc: true },
                     { feature: "Free Trial", abbyy: "Limited", sbc: "7 days" },
-                    { feature: "Price", abbyy: "$59.99/year", sbc: "$49/year" },
+                    { feature: "Price", abbyy: "$59.99/yr", sbc: "$49/yr" },
                   ].map((row, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-4 px-4 font-medium">{row.feature}</td>
-                      <td className="py-4 px-4 text-center">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 font-medium">{row.feature}</td>
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center">
                         {typeof row.abbyy === "boolean" ? (
-                          row.abbyy ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.abbyy ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : row.abbyy}
                       </td>
-                      <td className="py-4 px-4 text-center bg-primary/5">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center bg-primary/5">
                         {typeof row.sbc === "boolean" ? (
-                          row.sbc ? <Check className="w-5 h-5 text-primary mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.sbc ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : <span className="font-semibold text-primary">{row.sbc}</span>}
                       </td>
                     </tr>
