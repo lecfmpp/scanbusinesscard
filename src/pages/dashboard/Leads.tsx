@@ -354,28 +354,28 @@ const Leads = () => {
                     onClick={(e) => e.stopPropagation()}
                   />
                   <AccordionTrigger className="flex-1 hover:no-underline py-2 [&>svg]:hidden">
-                    <div className="flex items-center gap-4 text-left w-full">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex items-center text-left w-full">
+                      <div className="flex-1 min-w-0 mr-4">
                         <p className="font-medium truncate">{card.full_name || "No name"}</p>
                         <p className="text-sm text-muted-foreground truncate">
                           {card.job_title && `${card.job_title} • `}{card.company || "No company"}
                         </p>
                       </div>
-                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground mr-4">
                         {card.email && (
                           <span className="flex items-center gap-1">
                             <Mail className="h-3 w-3" />
-                            <span className="truncate max-w-[150px]">{card.email}</span>
+                            <span className="truncate max-w-[120px]">{card.email}</span>
                           </span>
                         )}
                         {card.phone && (
                           <span className="flex items-center gap-1">
                             <Phone className="h-3 w-3" />
-                            <span>{card.phone}</span>
+                            <span className="truncate max-w-[100px]">{card.phone}</span>
                           </span>
                         )}
                       </div>
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180">
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 ml-auto transition-transform duration-200 [[data-state=open]_&]:rotate-180">
                         <ChevronDown className="h-4 w-4 text-primary-foreground" />
                       </div>
                     </div>
