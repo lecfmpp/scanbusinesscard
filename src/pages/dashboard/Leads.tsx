@@ -353,8 +353,8 @@ const Leads = () => {
                     onCheckedChange={() => toggleCard(card.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <AccordionTrigger className="flex-1 hover:no-underline py-2">
-                    <div className="flex items-center gap-4 text-left w-full pr-4">
+                  <AccordionTrigger className="flex-1 hover:no-underline py-2 [&>svg]:hidden">
+                    <div className="flex items-center gap-4 text-left w-full">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{card.full_name || "No name"}</p>
                         <p className="text-sm text-muted-foreground truncate">
@@ -374,6 +374,9 @@ const Leads = () => {
                             <span>{card.phone}</span>
                           </span>
                         )}
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 transition-transform duration-200 [[data-state=open]_&]:rotate-180">
+                        <ChevronDown className="h-4 w-4 text-primary-foreground" />
                       </div>
                     </div>
                   </AccordionTrigger>
