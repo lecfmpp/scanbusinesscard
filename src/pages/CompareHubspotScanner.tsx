@@ -3,10 +3,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const CompareHubspotScanner = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="ScanBusinessCard vs HubSpot Card Scanner - Comparison"
+        description="Compare ScanBusinessCard and HubSpot Card Scanner. Bulk scan 20+ business cards at once and seamlessly export to HubSpot CRM."
+        canonical="https://scanbusinesscard.com/compare/hubspot-scanner"
+      />
       <Header />
       
       <main className="flex-1 py-16">

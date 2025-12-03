@@ -3,10 +3,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const CompareEvernote = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="ScanBusinessCard vs Evernote Scannable - Comparison"
+        description="Compare ScanBusinessCard and Evernote Scannable. Purpose-built business card scanner with bulk scanning, CRM export, and event organization."
+        canonical="https://scanbusinesscard.com/compare/evernote"
+      />
       <Header />
       
       <main className="flex-1 py-16">

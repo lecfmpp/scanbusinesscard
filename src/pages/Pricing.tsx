@@ -2,10 +2,16 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PricingCard } from "@/components/PricingCard";
 import { Check } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const Pricing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Pricing - Affordable Business Card Scanning Plans"
+        description="Simple, transparent pricing for bulk business card scanning. Start with a 7-day free trial. Monthly and yearly plans available for sales professionals."
+        canonical="https://scanbusinesscard.com/pricing"
+      />
       <Header />
       
       <main className="flex-1 py-16">

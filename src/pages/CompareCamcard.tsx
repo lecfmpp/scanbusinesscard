@@ -3,10 +3,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const CompareCamcard = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="ScanBusinessCard vs CamCard - Best Business Card Scanner Comparison"
+        description="Compare ScanBusinessCard and CamCard. See why sales pros choose our bulk scanning feature to capture 20+ cards at once vs one-by-one scanning."
+        canonical="https://scanbusinesscard.com/compare/camcard"
+      />
       <Header />
       
       <main className="flex-1 py-16">

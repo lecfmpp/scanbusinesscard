@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { z } from "zod";
+import SEO from "@/components/SEO";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -141,6 +142,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted">
+      <SEO
+        title="Sign In or Create Account"
+        description="Sign in to ScanBusinessCard to access your dashboard, manage leads, and export contacts to your CRM."
+        canonical="https://scanbusinesscard.com/auth"
+        noIndex={true}
+      />
       <Header />
       
       <div className="flex-1 flex items-center justify-center p-4">
