@@ -21,32 +21,32 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
     <div className="relative">
       {/* Floating Elements */}
       {/* Slack Logo - Top Left */}
-      <div className="absolute -left-8 top-8 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite] z-10">
+      <div className="absolute -left-12 top-4 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite] z-10">
         <img src={slackIcon} alt="Slack" className="w-9 h-9" />
       </div>
       
       {/* HubSpot Logo - Top Right */}
-      <div className="absolute -right-8 top-16 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.5s] z-10">
+      <div className="absolute -right-12 top-12 w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.5s] z-10">
         <img src={hubspotIcon} alt="HubSpot" className="w-9 h-9" />
       </div>
       
       {/* Leads/Users Icon - Bottom Left */}
-      <div className="absolute -left-6 bottom-32 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.3s] z-10">
+      <div className="absolute -left-10 bottom-36 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.3s] z-10">
         <Users className="w-6 h-6 text-white" />
       </div>
       
       {/* Money/Dollar Icon - Right Side */}
-      <div className="absolute -right-4 bottom-48 w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite_0.7s] z-10">
+      <div className="absolute -right-10 bottom-52 w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3s_ease-in-out_infinite_0.7s] z-10">
         <DollarSign className="w-6 h-6 text-white" />
       </div>
       
       {/* Trending/Growth Icon - Top Center Left */}
-      <div className="absolute -left-12 top-1/3 w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.2s] z-10">
+      <div className="absolute -left-14 top-1/3 w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.2s] z-10">
         <TrendingUp className="w-5 h-5 text-white" />
       </div>
       
       {/* Briefcase/CRM Icon - Bottom Right */}
-      <div className="absolute -right-10 bottom-20 w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.9s] z-10">
+      <div className="absolute -right-14 bottom-24 w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.9s] z-10">
         <Briefcase className="w-6 h-6 text-white" />
       </div>
 
