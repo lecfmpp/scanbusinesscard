@@ -58,9 +58,9 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
               </div>
 
               {/* Cards detected badge */}
-              <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary/90 to-orange-500/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-sm md:text-base font-bold flex items-center gap-2.5 shadow-lg shadow-primary/40 border border-white/20 animate-pulse">
+              <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-md text-white px-5 py-2.5 rounded-full text-sm md:text-base font-bold flex items-center gap-2.5 shadow-lg shadow-green-500/40 border border-white/20 animate-pulse">
                 <div className="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_8px_2px_rgba(74,222,128,0.6)]" />
-                <span>20 cards detected</span>
+                <span>20 Leads detected</span>
               </div>
 
               {/* Scanning frame corners */}
