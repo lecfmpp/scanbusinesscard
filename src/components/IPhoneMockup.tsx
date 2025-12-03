@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
-import businessCardsImage from "@/assets/business-cards-table.jpg";
+import businessCardsImage from "@/assets/business-cards-organized.jpg";
 
 interface IPhoneMockupProps {
   onClick: () => void;
