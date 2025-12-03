@@ -79,34 +79,34 @@ const CompareSansan = () => {
           <div className="max-w-4xl mx-auto mb-16">
             <h2 className="text-2xl font-bold font-display text-center mb-8">Feature Comparison</h2>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-xs sm:text-sm md:text-base">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-4 px-4">Feature</th>
-                    <th className="text-center py-4 px-4">Sansan</th>
-                    <th className="text-center py-4 px-4 bg-primary/5">ScanBusinessCard</th>
+                    <th className="text-left py-2 px-2 sm:py-4 sm:px-4">Feature</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4">Sansan</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4 bg-primary/5">Us</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
                     { feature: "Bulk Scanning", sansan: false, sbc: true },
-                    { feature: "Cards per photo", sansan: "1", sbc: "20+" },
+                    { feature: "Cards/photo", sansan: "1", sbc: "20+" },
                     { feature: "Instant Setup", sansan: false, sbc: true },
-                    { feature: "Google Sheets Export", sansan: true, sbc: true },
-                    { feature: "Free Trial", sansan: "Demo only", sbc: "7 days free" },
-                    { feature: "Best For", sansan: "Enterprise", sbc: "Individuals & Teams" },
-                    { feature: "Price", sansan: "Contact sales", sbc: "$49/year" },
+                    { feature: "Sheets Export", sansan: true, sbc: true },
+                    { feature: "Free Trial", sansan: "Demo", sbc: "7 days" },
+                    { feature: "Best For", sansan: "Enterprise", sbc: "Teams" },
+                    { feature: "Price", sansan: "Contact", sbc: "$49/yr" },
                   ].map((row, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-4 px-4 font-medium">{row.feature}</td>
-                      <td className="py-4 px-4 text-center">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 font-medium">{row.feature}</td>
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center">
                         {typeof row.sansan === "boolean" ? (
-                          row.sansan ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.sansan ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : row.sansan}
                       </td>
-                      <td className="py-4 px-4 text-center bg-primary/5">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center bg-primary/5">
                         {typeof row.sbc === "boolean" ? (
-                          row.sbc ? <Check className="w-5 h-5 text-primary mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.sbc ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : <span className="font-semibold text-primary">{row.sbc}</span>}
                       </td>
                     </tr>

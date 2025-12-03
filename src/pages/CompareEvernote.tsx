@@ -79,34 +79,34 @@ const CompareEvernote = () => {
           <div className="max-w-4xl mx-auto mb-16">
             <h2 className="text-2xl font-bold font-display text-center mb-8">Feature Comparison</h2>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-xs sm:text-sm md:text-base">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-4 px-4">Feature</th>
-                    <th className="text-center py-4 px-4">Evernote Scannable</th>
-                    <th className="text-center py-4 px-4 bg-primary/5">ScanBusinessCard</th>
+                    <th className="text-left py-2 px-2 sm:py-4 sm:px-4">Feature</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4">Evernote</th>
+                    <th className="text-center py-2 px-2 sm:py-4 sm:px-4 bg-primary/5">Us</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
                     { feature: "Bulk Scanning", evernote: false, sbc: true },
-                    { feature: "Cards per photo", evernote: "1", sbc: "20+" },
-                    { feature: "Business Card Focus", evernote: false, sbc: true },
-                    { feature: "Google Sheets Export", evernote: false, sbc: true },
-                    { feature: "HubSpot Integration", evernote: false, sbc: true },
-                    { feature: "Slack Integration", evernote: false, sbc: true },
-                    { feature: "Price", evernote: "Free", sbc: "$49/year" },
+                    { feature: "Cards/photo", evernote: "1", sbc: "20+" },
+                    { feature: "Card Focus", evernote: false, sbc: true },
+                    { feature: "Sheets Export", evernote: false, sbc: true },
+                    { feature: "HubSpot", evernote: false, sbc: true },
+                    { feature: "Slack", evernote: false, sbc: true },
+                    { feature: "Price", evernote: "Free", sbc: "$49/yr" },
                   ].map((row, index) => (
                     <tr key={index} className="border-b">
-                      <td className="py-4 px-4 font-medium">{row.feature}</td>
-                      <td className="py-4 px-4 text-center">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 font-medium">{row.feature}</td>
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center">
                         {typeof row.evernote === "boolean" ? (
-                          row.evernote ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.evernote ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : row.evernote}
                       </td>
-                      <td className="py-4 px-4 text-center bg-primary/5">
+                      <td className="py-2 px-2 sm:py-4 sm:px-4 text-center bg-primary/5">
                         {typeof row.sbc === "boolean" ? (
-                          row.sbc ? <Check className="w-5 h-5 text-primary mx-auto" /> : <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                          row.sbc ? <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary mx-auto" /> : <X className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mx-auto" />
                         ) : <span className="font-semibold text-primary">{row.sbc}</span>}
                       </td>
                     </tr>
