@@ -46,7 +46,7 @@ const DashboardLayout = () => {
       <aside className="hidden md:flex w-64 flex-col border-r bg-card">
         <div className="p-6 border-b">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7 rounded-lg" />
+            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7" />
             <span className="font-bold text-lg">ScanBusinessCard</span>
           </Link>
         </div>
@@ -91,7 +91,7 @@ const DashboardLayout = () => {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b">
         <div className="flex items-center justify-between p-4">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7 rounded-lg" />
+            <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7" />
             <span className="font-bold">ScanBusinessCard</span>
           </Link>
           <Button
