@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import Results from "./pages/Results";
 import Auth from "./pages/Auth";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -15,6 +14,10 @@ import CompareSansan from "./pages/CompareSansan";
 import CompareHubspotScanner from "./pages/CompareHubspotScanner";
 import CompareEvernote from "./pages/CompareEvernote";
 import NotFound from "./pages/NotFound";
+import DashboardLayout from "./components/DashboardLayout";
+import Events from "./pages/dashboard/Events";
+import Leads from "./pages/dashboard/Leads";
+import Billing from "./pages/dashboard/Billing";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +29,6 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/results" element={<Results />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
@@ -36,6 +38,16 @@ const App = () => (
           <Route path="/compare/sansan" element={<CompareSansan />} />
           <Route path="/compare/hubspot-scanner" element={<CompareHubspotScanner />} />
           <Route path="/compare/evernote" element={<CompareEvernote />} />
+          
+          {/* Dashboard Routes */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Events />} />
+            <Route path="events" element={<Events />} />
+            <Route path="leads" element={<Leads />} />
+            <Route path="leads/:eventId" element={<Leads />} />
+            <Route path="billing" element={<Billing />} />
+          </Route>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

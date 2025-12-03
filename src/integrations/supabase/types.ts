@@ -19,34 +19,72 @@ export type Database = {
           company: string
           created_at: string
           email: string
+          event_id: string | null
           full_name: string
           id: string
           job_title: string
           phone: string
           updated_at: string
+          user_id: string | null
           website: string
         }
         Insert: {
           company?: string
           created_at?: string
           email?: string
+          event_id?: string | null
           full_name?: string
           id?: string
           job_title?: string
           phone?: string
           updated_at?: string
+          user_id?: string | null
           website?: string
         }
         Update: {
           company?: string
           created_at?: string
           email?: string
+          event_id?: string | null
           full_name?: string
           id?: string
           job_title?: string
           phone?: string
           updated_at?: string
+          user_id?: string | null
           website?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_cards_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

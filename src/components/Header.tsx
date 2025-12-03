@@ -2,19 +2,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CreditCard } from "lucide-react";
+import { CreditCard, LayoutDashboard } from "lucide-react";
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check initial auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
     });
@@ -43,13 +41,19 @@ const Header = () => {
             Pricing
           </Link>
           {isLoggedIn ? (
-            <Button 
-              onClick={handleLogout}
-              variant="ghost"
-              className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 h-auto p-0"
-            >
-              Logout
-            </Button>
+            <>
+              <Link to="/dashboard" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 transition-opacity flex items-center gap-1">
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+              <Button 
+                onClick={handleLogout}
+                variant="ghost"
+                className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 h-auto p-0"
+              >
+                Logout
+              </Button>
+            </>
           ) : (
             <Link to="/auth" className="text-xs md:text-sm font-medium text-[hsl(var(--header-foreground))] hover:opacity-70 transition-opacity">
               Sign In
