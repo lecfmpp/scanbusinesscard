@@ -3,10 +3,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const CompareAbbyy = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="ScanBusinessCard vs ABBYY - Business Card Scanner Comparison"
+        description="Compare ScanBusinessCard and ABBYY Business Card Reader. Bulk scan 20+ cards at once vs one-by-one scanning. Perfect for tradeshow lead capture."
+        canonical="https://scanbusinesscard.com/compare/abbyy"
+      />
       <Header />
       
       <main className="flex-1 py-16">

@@ -1,9 +1,15 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const Privacy = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="Privacy Policy"
+        description="ScanBusinessCard privacy policy. Learn how we collect, use, and protect your data when using our business card scanning service."
+        canonical="https://scanbusinesscard.com/privacy"
+      />
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8 md:py-12 max-w-4xl">

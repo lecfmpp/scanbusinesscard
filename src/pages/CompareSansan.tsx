@@ -3,10 +3,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "@/components/SEO";
 
 const CompareSansan = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="ScanBusinessCard vs Sansan - Business Card Scanner Comparison"
+        description="Compare ScanBusinessCard and Sansan. Affordable bulk card scanning for small teams vs enterprise pricing. Capture 20+ leads in one photo."
+        canonical="https://scanbusinesscard.com/compare/sansan"
+      />
       <Header />
       
       <main className="flex-1 py-16">

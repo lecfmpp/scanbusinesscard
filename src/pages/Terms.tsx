@@ -1,9 +1,15 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const Terms = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="Terms of Service"
+        description="ScanBusinessCard terms of service. Read our terms and conditions for using our AI-powered business card scanning platform."
+        canonical="https://scanbusinesscard.com/terms"
+      />
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8 md:py-12 max-w-4xl">
