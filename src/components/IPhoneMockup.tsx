@@ -2,53 +2,13 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 import businessCardsImage from "@/assets/business-cards-organized.jpg";
+import slackIcon from "@/assets/slack-icon.png";
+import hubspotIcon from "@/assets/hubspot-icon.svg";
+import googleSheetsIcon from "@/assets/google-sheets-icon.svg";
 
 interface IPhoneMockupProps {
   onClick: () => void;
 }
-
-// Mini business card component
-const FloatingCard = ({ 
-  name, 
-  company, 
-  color, 
-  logoInitials,
-  logoColor,
-  className,
-  animationDelay = "0s"
-}: { 
-  name: string;
-  company: string;
-  color: string;
-  logoInitials: string;
-  logoColor: string;
-  className: string;
-  animationDelay?: string;
-}) => (
-  <div 
-    className={`absolute ${className} w-[100px] h-[60px] rounded-lg shadow-xl z-10`}
-    style={{ 
-      background: color,
-      animation: `float 3.5s ease-in-out infinite`,
-      animationDelay
-    }}
-  >
-    <div className="p-2 h-full flex flex-col justify-between">
-      {/* Logo */}
-      <div 
-        className="w-5 h-5 rounded text-[8px] font-bold flex items-center justify-center text-white"
-        style={{ background: logoColor }}
-      >
-        {logoInitials}
-      </div>
-      {/* Info */}
-      <div>
-        <p className="text-[8px] font-semibold text-gray-800 truncate">{name}</p>
-        <p className="text-[6px] text-gray-500 truncate">{company}</p>
-      </div>
-    </div>
-  </div>
-);
 
 const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,73 +20,37 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
 
   return (
     <div className="relative">
-      {/* Floating Business Cards */}
+      {/* Floating Integration Icons */}
       
-      {/* Card 1 - Top Left - Blue theme */}
-      <FloatingCard
-        name="Sarah Mitchell"
-        company="Acme Corp"
-        color="linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%)"
-        logoInitials="AC"
-        logoColor="#1976d2"
-        className="-left-16 top-2"
-        animationDelay="0s"
-      />
+      {/* Slack - Top Left */}
+      <div className="absolute -left-16 top-4 w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-[float_3s_ease-in-out_infinite] z-10">
+        <img src={slackIcon} alt="Slack" className="w-9 h-9" />
+      </div>
       
-      {/* Card 2 - Top Right - Green theme */}
-      <FloatingCard
-        name="James Chen"
-        company="EcoTech Solutions"
-        color="linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%)"
-        logoInitials="ET"
-        logoColor="#2e7d32"
-        className="-right-16 top-8"
-        animationDelay="0.5s"
-      />
+      {/* HubSpot - Top Right */}
+      <div className="absolute -right-16 top-8 w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.5s] z-10">
+        <img src={hubspotIcon} alt="HubSpot" className="w-9 h-9" />
+      </div>
       
-      {/* Card 3 - Left Middle - Purple theme */}
-      <FloatingCard
-        name="Maria Rodriguez"
-        company="Nova Industries"
-        color="linear-gradient(135deg, #ffffff 0%, #f3e5f5 100%)"
-        logoInitials="NI"
-        logoColor="#7b1fa2"
-        className="-left-20 top-1/3"
-        animationDelay="0.3s"
-      />
+      {/* Google Sheets - Left Middle */}
+      <div className="absolute -left-20 top-1/3 w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.3s] z-10">
+        <img src={googleSheetsIcon} alt="Google Sheets" className="w-9 h-9" />
+      </div>
       
-      {/* Card 4 - Right Middle - Orange theme */}
-      <FloatingCard
-        name="David Park"
-        company="SunRise Digital"
-        color="linear-gradient(135deg, #ffffff 0%, #fff3e0 100%)"
-        logoInitials="SR"
-        logoColor="#e65100"
-        className="-right-20 bottom-56"
-        animationDelay="0.7s"
-      />
+      {/* Slack - Right Middle */}
+      <div className="absolute -right-20 bottom-52 w-12 h-12 bg-white rounded-xl shadow-xl flex items-center justify-center animate-[float_3s_ease-in-out_infinite_0.7s] z-10">
+        <img src={slackIcon} alt="Slack" className="w-7 h-7" />
+      </div>
       
-      {/* Card 5 - Bottom Left - Teal theme */}
-      <FloatingCard
-        name="Emma Watson"
-        company="CloudSync Inc"
-        color="linear-gradient(135deg, #ffffff 0%, #e0f2f1 100%)"
-        logoInitials="CS"
-        logoColor="#00796b"
-        className="-left-14 bottom-20"
-        animationDelay="0.2s"
-      />
+      {/* HubSpot - Bottom Left */}
+      <div className="absolute -left-14 bottom-24 w-12 h-12 bg-white rounded-xl shadow-xl flex items-center justify-center animate-[float_3.5s_ease-in-out_infinite_0.2s] z-10">
+        <img src={hubspotIcon} alt="HubSpot" className="w-7 h-7" />
+      </div>
       
-      {/* Card 6 - Bottom Right - Red theme */}
-      <FloatingCard
-        name="Alex Turner"
-        company="RedPoint Media"
-        color="linear-gradient(135deg, #ffffff 0%, #ffebee 100%)"
-        logoInitials="RP"
-        logoColor="#c62828"
-        className="-right-14 bottom-12"
-        animationDelay="0.9s"
-      />
+      {/* Google Sheets - Bottom Right */}
+      <div className="absolute -right-14 bottom-16 w-12 h-12 bg-white rounded-xl shadow-xl flex items-center justify-center animate-[float_4s_ease-in-out_infinite_0.9s] z-10">
+        <img src={googleSheetsIcon} alt="Google Sheets" className="w-7 h-7" />
+      </div>
 
       {/* iPhone Frame - Realistic proportions */}
       <div className="relative w-[260px] sm:w-[280px] md:w-[300px] mx-auto">
@@ -168,7 +92,7 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
                 </div>
               </div>
 
-              {/* Cards detected badge - 20% larger */}
+              {/* Cards detected badge */}
               <div className="absolute top-20 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500/90 to-emerald-500/90 backdrop-blur-md text-white px-2.5 py-1.5 rounded-md text-xs font-semibold flex items-center gap-2 shadow-md shadow-green-500/30 border border-white/20">
                 <div className="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_5px_1px_rgba(74,222,128,0.6)]" />
                 <span>20 Leads detected</span>
@@ -176,29 +100,22 @@ const IPhoneMockup = ({ onClick }: IPhoneMockupProps) => {
 
               {/* Scanning frame corners */}
               <div className="absolute top-28 left-6 right-6 bottom-32">
-                {/* Top left corner */}
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/80 rounded-tl-lg" />
-                {/* Top right corner */}
                 <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/80 rounded-tr-lg" />
-                {/* Bottom left corner */}
                 <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/80 rounded-bl-lg" />
-                {/* Bottom right corner */}
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/80 rounded-br-lg" />
               </div>
 
               {/* Bottom controls */}
               <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-8">
-                {/* Flash */}
                 <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                {/* Capture button */}
                 <div className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center">
                   <div className="w-12 h-12 rounded-full bg-white" />
                 </div>
-                {/* Switch camera */}
                 <div className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
