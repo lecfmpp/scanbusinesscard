@@ -347,7 +347,7 @@ const Leads = () => {
           <Accordion type="multiple" className="w-full">
             {cards.map((card) => (
               <AccordionItem key={card.id} value={card.id} className="border-b last:border-0">
-                <div className="flex items-center gap-3 px-4 py-2 hover:bg-muted/30">
+                <div className="relative flex items-center gap-3 pl-4 pr-14 py-2 hover:bg-muted/30">
                   <Checkbox 
                     checked={selectedCards.has(card.id)} 
                     onCheckedChange={() => toggleCard(card.id)}
@@ -355,13 +355,13 @@ const Leads = () => {
                   />
                   <AccordionTrigger className="flex-1 hover:no-underline py-2 [&>svg]:hidden">
                     <div className="flex items-center text-left w-full">
-                      <div className="flex-1 min-w-0 mr-4">
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{card.full_name || "No name"}</p>
                         <p className="text-sm text-muted-foreground truncate">
                           {card.job_title && `${card.job_title} • `}{card.company || "No company"}
                         </p>
                       </div>
-                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground mr-4">
+                      <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground ml-4">
                         {card.email && (
                           <span className="flex items-center gap-1">
                             <Mail className="h-3 w-3" />
@@ -375,9 +375,9 @@ const Leads = () => {
                           </span>
                         )}
                       </div>
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 ml-auto transition-transform duration-200 [[data-state=open]_&]:rotate-180">
-                        <ChevronDown className="h-4 w-4 text-primary-foreground" />
-                      </div>
+                    </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary flex items-center justify-center transition-transform duration-200 [[data-state=open]_&]:rotate-180">
+                      <ChevronDown className="h-4 w-4 text-primary-foreground" />
                     </div>
                   </AccordionTrigger>
                 </div>
