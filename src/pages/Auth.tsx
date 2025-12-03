@@ -9,6 +9,7 @@ import { z } from "zod";
 import SEO from "@/components/SEO";
 import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import logo from "@/assets/logo.png";
+import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -19,7 +20,7 @@ const CRM_OPTIONS = [
   { id: "pipedrive", label: "Pipedrive" },
   { id: "zoho", label: "Zoho CRM" },
   { id: "sheets", label: "Google Sheets" },
-  { id: "other", label: "Other / None" },
+  { id: "other", label: "Other" },
 ];
 
 const FEATURES = [
@@ -33,6 +34,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedCRM, setSelectedCRM] = useState("");
+  const [customCRM, setCustomCRM] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -68,10 +70,12 @@ export default function Auth() {
       }
     }
 
-    if (!selectedCRM) {
-      toast.error("Please select your CRM");
+    if (!selectedCRM || (selectedCRM === "other" && !customCRM.trim())) {
+      toast.error("Please select or enter your CRM");
       return;
     }
+
+    const crmValue = selectedCRM === "other" ? customCRM.trim() : selectedCRM;
 
     setLoading(true);
     
@@ -81,7 +85,7 @@ export default function Auth() {
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
-          preferred_crm: selectedCRM
+          preferred_crm: crmValue
         }
       }
     });
@@ -169,62 +173,41 @@ export default function Auth() {
       />
       
       {/* Left side - Branding & Features */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/90 via-primary to-orange-600 p-12 flex-col justify-between relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
-        </div>
-        
+      <div className="hidden lg:flex lg:w-1/2 gradient-backdrop p-12 flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
-          <a href="/" className="flex items-center gap-3 mb-16">
+          <a href="/" className="flex items-center gap-3 mb-12">
             <img src={logo} alt="ScanBusinessCard" className="h-10" />
           </a>
           
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white/90 text-sm">
+            <div className="inline-flex items-center gap-2 bg-primary/10 backdrop-blur-sm rounded-full px-4 py-2 text-primary text-sm font-medium">
               <Sparkles className="w-4 h-4" />
               <span>Trusted by 10,000+ sales pros</span>
             </div>
             
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-4xl xl:text-5xl font-bold text-foreground leading-tight">
               Stop losing leads<br />
               from every event.
             </h1>
             
-            <p className="text-xl text-white/80 max-w-md">
+            <p className="text-xl text-muted-foreground max-w-md">
               The fastest way to turn a pile of business cards into qualified leads in your CRM.
             </p>
           </div>
           
-          <div className="mt-12 space-y-4">
+          <div className="mt-8 space-y-3">
             {FEATURES.map((feature, i) => (
-              <div key={i} className="flex items-center gap-3 text-white/90">
-                <CheckCircle2 className="w-5 h-5 text-white" />
+              <div key={i} className="flex items-center gap-3 text-foreground">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
                 <span>{feature}</span>
               </div>
             ))}
           </div>
         </div>
         
-        {/* Screenshot showcase */}
-        <div className="relative z-10 mt-12">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white/20 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-white">CRM</div>
-                <div className="text-xs text-white/70 mt-1">Leads Dashboard</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-white">Slack</div>
-                <div className="text-xs text-white/70 mt-1">Instant Alerts</div>
-              </div>
-              <div className="bg-white/20 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-white">HubSpot</div>
-                <div className="text-xs text-white/70 mt-1">Auto-Sync</div>
-              </div>
-            </div>
-          </div>
+        {/* Before/After Slider */}
+        <div className="relative z-10 mt-8">
+          <BeforeAfterSlider />
         </div>
       </div>
       
@@ -400,6 +383,16 @@ export default function Auth() {
                         </button>
                       ))}
                     </div>
+                    {selectedCRM === "other" && (
+                      <Input
+                        type="text"
+                        placeholder="Enter your CRM or tool name"
+                        value={customCRM}
+                        onChange={(e) => setCustomCRM(e.target.value)}
+                        className="mt-2 h-12"
+                        autoFocus
+                      />
+                    )}
                   </div>
                   
                   <Button type="submit" className="w-full h-12" disabled={loading}>
