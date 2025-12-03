@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,6 +12,7 @@ import { useScanCards } from "@/hooks/useScanCards";
 import ScanningAnimation from "@/components/ScanningAnimation";
 import SignupModal from "@/components/SignupModal";
 import EventSelectModal from "@/components/EventSelectModal";
+import hubspotIcon from "@/assets/hubspot-icon.svg";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +29,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface BusinessCard {
   id: string;
@@ -57,6 +71,12 @@ const Leads = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // HubSpot integration state
+  const [hubspotConnected, setHubspotConnected] = useState(false);
+  const [hubspotLoading, setHubspotLoading] = useState(true);
+  const [showHubspotDialog, setShowHubspotDialog] = useState(false);
+  const [sendingToHubspot, setSendingToHubspot] = useState(false);
 
   const {
     triggerScan,
@@ -73,7 +93,28 @@ const Leads = () => {
 
   useEffect(() => {
     fetchData();
+    checkHubspotConnection();
   }, [eventId]);
+
+  const checkHubspotConnection = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('integrations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('provider', 'hubspot')
+        .maybeSingle();
+
+      setHubspotConnected(!!data);
+    } catch (error) {
+      console.error('Error checking HubSpot connection:', error);
+    } finally {
+      setHubspotLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -304,6 +345,45 @@ const Leads = () => {
     toast.success("CSV file downloaded");
   };
 
+  const sendToHubspot = async () => {
+    const selected = cards.filter(c => selectedCards.has(c.id));
+    if (selected.length === 0) {
+      toast.error("Please select at least one lead");
+      return;
+    }
+
+    setSendingToHubspot(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-to-hubspot', {
+        body: { leadIds: Array.from(selectedCards) },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success > 0) {
+        toast.success(`${data.success} contact${data.success > 1 ? 's' : ''} created in HubSpot!`);
+      }
+      if (data.failed > 0) {
+        toast.error(`${data.failed} contact${data.failed > 1 ? 's' : ''} failed to sync`);
+      }
+    } catch (error) {
+      console.error('Error sending to HubSpot:', error);
+      toast.error('Failed to send leads to HubSpot');
+    } finally {
+      setSendingToHubspot(false);
+      setShowHubspotDialog(false);
+    }
+  };
+
   const cardToDelete = cards.find(c => c.id === deleteCardId);
 
   if (loading) {
@@ -354,6 +434,43 @@ const Leads = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* HubSpot Send Dialog */}
+      <Dialog open={showHubspotDialog} onOpenChange={setShowHubspotDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={hubspotIcon} alt="HubSpot" className="h-6 w-6" />
+              Send to HubSpot
+            </DialogTitle>
+            <DialogDescription>
+              Send {selectedCards.size} selected lead{selectedCards.size !== 1 ? 's' : ''} to your HubSpot CRM as contacts.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowHubspotDialog(false)} disabled={sendingToHubspot}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendToHubspot} 
+              disabled={sendingToHubspot}
+              className="bg-[#ff7a59] hover:bg-[#ff7a59]/90"
+            >
+              {sendingToHubspot ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <img src={hubspotIcon} alt="" className="h-4 w-4 mr-2" />
+                  Send to HubSpot
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -391,6 +508,36 @@ const Leads = () => {
             <Download className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Export</span>
           </Button>
+          {hubspotLoading ? (
+            <Button variant="secondary" size="sm" disabled>
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </Button>
+          ) : hubspotConnected ? (
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowHubspotDialog(true)} 
+              disabled={selectedCards.size === 0}
+              size="sm"
+              className="gap-1"
+            >
+              <img src={hubspotIcon} alt="HubSpot" className="h-4 w-4" />
+              <span className="hidden sm:inline">HubSpot</span>
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/dashboard/integrations">
+                  <Button variant="secondary" size="sm" className="gap-1 opacity-60">
+                    <img src={hubspotIcon} alt="HubSpot" className="h-4 w-4" />
+                    <span className="hidden sm:inline">HubSpot</span>
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Connect HubSpot in Integrations</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
           <Button onClick={triggerScan} size="sm">
             <Camera className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">New Scan</span>
