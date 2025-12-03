@@ -156,19 +156,27 @@ const Integrations = () => {
   const connectSlack = async () => {
     setSlackConnecting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('Session error:', sessionError);
         toast.error('Please sign in to connect Slack');
+        setSlackConnecting(false);
         return;
       }
 
+      console.log('Calling slack-oauth with session');
+      
       const { data, error } = await supabase.functions.invoke('slack-oauth', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Slack OAuth error:', error);
+        throw error;
+      }
 
       if (data?.url) {
         window.location.href = data.url;
@@ -177,7 +185,7 @@ const Integrations = () => {
       }
     } catch (error) {
       console.error('Error connecting Slack:', error);
-      toast.error('Failed to start Slack connection');
+      toast.error(`Failed to start Slack connection: ${error.message || 'Unknown error'}`);
       setSlackConnecting(false);
     }
   };
