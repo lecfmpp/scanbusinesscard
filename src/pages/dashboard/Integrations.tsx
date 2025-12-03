@@ -7,21 +7,31 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import hubspotIcon from "@/assets/hubspot-icon.svg";
+import slackIcon from "@/assets/slack-icon.png";
 
 interface Integration {
   id: string;
   provider: string;
   created_at: string;
-  extra_data: { hub_id?: string } | null;
+  extra_data: { hub_id?: string; team_name?: string } | null;
 }
 
 const Integrations = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  
+  // HubSpot state
   const [hubspotConnected, setHubspotConnected] = useState(false);
   const [hubspotHubId, setHubspotHubId] = useState<string | null>(null);
+  const [hubspotConnecting, setHubspotConnecting] = useState(false);
+  const [hubspotDisconnecting, setHubspotDisconnecting] = useState(false);
+  
+  // Slack state
+  const [slackConnected, setSlackConnected] = useState(false);
+  const [slackTeamName, setSlackTeamName] = useState<string | null>(null);
+  const [slackConnecting, setSlackConnecting] = useState(false);
+  const [slackDisconnecting, setSlackDisconnecting] = useState(false);
+  
   const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState(false);
-  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     fetchIntegrations();
@@ -32,6 +42,10 @@ const Integrations = () => {
     
     if (success === 'hubspot') {
       toast.success('HubSpot connected successfully!');
+      setSearchParams({});
+      fetchIntegrations();
+    } else if (success === 'slack') {
+      toast.success('Slack connected successfully!');
       setSearchParams({});
       fetchIntegrations();
     } else if (error) {
@@ -48,19 +62,30 @@ const Integrations = () => {
       const { data, error } = await supabase
         .from('integrations')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('provider', 'hubspot')
-        .maybeSingle();
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      if (data) {
+      // Process HubSpot
+      const hubspot = data?.find(i => i.provider === 'hubspot');
+      if (hubspot) {
         setHubspotConnected(true);
-        const extraData = data.extra_data as { hub_id?: string } | null;
+        const extraData = hubspot.extra_data as { hub_id?: string } | null;
         setHubspotHubId(extraData?.hub_id || null);
       } else {
         setHubspotConnected(false);
         setHubspotHubId(null);
+      }
+
+      // Process Slack
+      const slack = data?.find(i => i.provider === 'slack');
+      if (slack) {
+        setSlackConnected(true);
+        const extraData = slack.extra_data as { team_name?: string } | null;
+        setSlackTeamName(extraData?.team_name || null);
+      } else {
+        setSlackConnected(false);
+        setSlackTeamName(null);
       }
     } catch (error) {
       console.error('Error fetching integrations:', error);
@@ -70,7 +95,7 @@ const Integrations = () => {
   };
 
   const connectHubspot = async () => {
-    setConnecting(true);
+    setHubspotConnecting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -94,12 +119,12 @@ const Integrations = () => {
     } catch (error) {
       console.error('Error connecting HubSpot:', error);
       toast.error('Failed to start HubSpot connection');
-      setConnecting(false);
+      setHubspotConnecting(false);
     }
   };
 
   const disconnectHubspot = async () => {
-    setDisconnecting(true);
+    setHubspotDisconnecting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -119,7 +144,61 @@ const Integrations = () => {
       console.error('Error disconnecting HubSpot:', error);
       toast.error('Failed to disconnect HubSpot');
     } finally {
-      setDisconnecting(false);
+      setHubspotDisconnecting(false);
+    }
+  };
+
+  const connectSlack = async () => {
+    setSlackConnecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in to connect Slack');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('slack-oauth', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No OAuth URL returned');
+      }
+    } catch (error) {
+      console.error('Error connecting Slack:', error);
+      toast.error('Failed to start Slack connection');
+      setSlackConnecting(false);
+    }
+  };
+
+  const disconnectSlack = async () => {
+    setSlackDisconnecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke('slack-disconnect', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setSlackConnected(false);
+      setSlackTeamName(null);
+      toast.success('Slack disconnected');
+    } catch (error) {
+      console.error('Error disconnecting Slack:', error);
+      toast.error('Failed to disconnect Slack');
+    } finally {
+      setSlackDisconnecting(false);
     }
   };
 
@@ -173,10 +252,10 @@ const Integrations = () => {
                   variant="outline"
                   className="flex-1"
                   onClick={disconnectHubspot}
-                  disabled={disconnecting}
+                  disabled={hubspotDisconnecting}
                 >
                   <Link2Off className="h-4 w-4 mr-2" />
-                  {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+                  {hubspotDisconnecting ? 'Disconnecting...' : 'Disconnect'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -192,16 +271,84 @@ const Integrations = () => {
               <Button
                 className="w-full bg-[#ff7a59] hover:bg-[#ff7a59]/90"
                 onClick={connectHubspot}
-                disabled={connecting}
+                disabled={hubspotConnecting}
               >
                 <Link2 className="h-4 w-4 mr-2" />
-                {connecting ? 'Connecting...' : 'Connect HubSpot'}
+                {hubspotConnecting ? 'Connecting...' : 'Connect HubSpot'}
               </Button>
             )}
           </CardContent>
         </Card>
 
-        {/* Coming Soon Cards */}
+        {/* Slack Card */}
+        <Card className={slackConnected ? "border-green-500/50" : ""}>
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+            <div className="h-12 w-12 rounded-lg bg-[#4A154B]/10 flex items-center justify-center">
+              <img src={slackIcon} alt="Slack" className="h-8 w-8" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-lg flex items-center gap-2">
+                Slack
+                {slackConnected && (
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                    <Check className="h-3 w-3 mr-1" />
+                    Connected
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>Team Communication</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Send scanned leads directly to a Slack channel for instant team notifications.
+            </p>
+            
+            {slackConnected && slackTeamName && (
+              <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2">
+                Workspace: {slackTeamName}
+              </div>
+            )}
+
+            {loading ? (
+              <Button disabled className="w-full">
+                Loading...
+              </Button>
+            ) : slackConnected ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={disconnectSlack}
+                  disabled={slackDisconnecting}
+                >
+                  <Link2Off className="h-4 w-4 mr-2" />
+                  {slackDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  asChild
+                >
+                  <a href="https://slack.com" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="w-full bg-[#4A154B] hover:bg-[#4A154B]/90"
+                onClick={connectSlack}
+                disabled={slackConnecting}
+              >
+                <Link2 className="h-4 w-4 mr-2" />
+                {slackConnecting ? 'Connecting...' : 'Connect Slack'}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Google Sheets - Coming Soon */}
         <Card className="opacity-60">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
             <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
@@ -221,26 +368,6 @@ const Integrations = () => {
             </p>
           </CardContent>
         </Card>
-
-        <Card className="opacity-60">
-          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-            <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-              <span className="text-2xl">💬</span>
-            </div>
-            <div className="flex-1">
-              <CardTitle className="text-lg flex items-center gap-2">
-                Slack
-                <Badge variant="secondary">Coming Soon</Badge>
-              </CardTitle>
-              <CardDescription>Team Communication</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Get instant notifications when new leads are scanned.
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Help Section */}
@@ -253,8 +380,8 @@ const Integrations = () => {
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>
-            Having trouble connecting? Make sure you're logged into the correct HubSpot account
-            and have the necessary permissions to create contacts.
+            Having trouble connecting? Make sure you're logged into the correct account
+            and have the necessary permissions.
           </p>
           <p>
             Contact us at{" "}

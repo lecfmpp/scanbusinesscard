@@ -6,13 +6,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Mail, Phone, Search, Trash2 } from "lucide-react";
+import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Search, Trash2 } from "lucide-react";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 import { useScanCards } from "@/hooks/useScanCards";
 import ScanningAnimation from "@/components/ScanningAnimation";
 import SignupModal from "@/components/SignupModal";
 import EventSelectModal from "@/components/EventSelectModal";
 import hubspotIcon from "@/assets/hubspot-icon.svg";
+import slackIcon from "@/assets/slack-icon.png";
 import {
   Accordion,
   AccordionContent,
@@ -42,6 +43,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BusinessCard {
   id: string;
@@ -55,6 +63,11 @@ interface BusinessCard {
 }
 
 interface Event {
+  id: string;
+  name: string;
+}
+
+interface SlackChannel {
   id: string;
   name: string;
 }
@@ -78,6 +91,15 @@ const Leads = () => {
   const [showHubspotDialog, setShowHubspotDialog] = useState(false);
   const [sendingToHubspot, setSendingToHubspot] = useState(false);
 
+  // Slack integration state
+  const [slackConnected, setSlackConnected] = useState(false);
+  const [slackLoading, setSlackLoading] = useState(true);
+  const [showSlackDialog, setShowSlackDialog] = useState(false);
+  const [sendingToSlack, setSendingToSlack] = useState(false);
+  const [slackChannels, setSlackChannels] = useState<SlackChannel[]>([]);
+  const [selectedChannel, setSelectedChannel] = useState<string>("");
+  const [loadingChannels, setLoadingChannels] = useState(false);
+
   const {
     triggerScan,
     isProcessing,
@@ -93,26 +115,26 @@ const Leads = () => {
 
   useEffect(() => {
     fetchData();
-    checkHubspotConnection();
+    checkIntegrations();
   }, [eventId]);
 
-  const checkHubspotConnection = async () => {
+  const checkIntegrations = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data } = await supabase
         .from('integrations')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('provider', 'hubspot')
-        .maybeSingle();
+        .select('provider')
+        .eq('user_id', user.id);
 
-      setHubspotConnected(!!data);
+      setHubspotConnected(data?.some(i => i.provider === 'hubspot') || false);
+      setSlackConnected(data?.some(i => i.provider === 'slack') || false);
     } catch (error) {
-      console.error('Error checking HubSpot connection:', error);
+      console.error('Error checking integrations:', error);
     } finally {
       setHubspotLoading(false);
+      setSlackLoading(false);
     }
   };
 
@@ -384,6 +406,78 @@ const Leads = () => {
     }
   };
 
+  const openSlackDialog = async () => {
+    if (selectedCards.size === 0) {
+      toast.error("Please select at least one lead");
+      return;
+    }
+    
+    setShowSlackDialog(true);
+    setLoadingChannels(true);
+    setSelectedChannel("");
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke('send-to-slack', {
+        body: { action: 'list-channels' },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      setSlackChannels(data.channels || []);
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+      toast.error('Failed to load Slack channels');
+    } finally {
+      setLoadingChannels(false);
+    }
+  };
+
+  const sendToSlack = async () => {
+    if (!selectedChannel) {
+      toast.error("Please select a channel");
+      return;
+    }
+
+    setSendingToSlack(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please sign in');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-to-slack', {
+        body: { 
+          leadIds: Array.from(selectedCards),
+          channelId: selectedChannel,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success > 0) {
+        toast.success(`${data.success} lead${data.success > 1 ? 's' : ''} sent to Slack!`);
+      }
+      if (data.failed > 0) {
+        toast.error(`${data.failed} lead${data.failed > 1 ? 's' : ''} failed to send`);
+      }
+    } catch (error) {
+      console.error('Error sending to Slack:', error);
+      toast.error('Failed to send leads to Slack');
+    } finally {
+      setSendingToSlack(false);
+      setShowSlackDialog(false);
+    }
+  };
+
   const cardToDelete = cards.find(c => c.id === deleteCardId);
 
   if (loading) {
@@ -471,6 +565,64 @@ const Leads = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Slack Send Dialog */}
+      <Dialog open={showSlackDialog} onOpenChange={setShowSlackDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <img src={slackIcon} alt="Slack" className="h-6 w-6" />
+              Send to Slack
+            </DialogTitle>
+            <DialogDescription>
+              Send {selectedCards.size} selected lead{selectedCards.size !== 1 ? 's' : ''} to a Slack channel.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium mb-2 block">Select Channel</label>
+            {loadingChannels ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a channel..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {slackChannels.map((channel) => (
+                    <SelectItem key={channel.id} value={channel.id}>
+                      #{channel.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSlackDialog(false)} disabled={sendingToSlack}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendToSlack} 
+              disabled={sendingToSlack || !selectedChannel}
+              className="bg-[#4A154B] hover:bg-[#4A154B]/90"
+            >
+              {sendingToSlack ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <img src={slackIcon} alt="" className="h-4 w-4 mr-2" />
+                  Send to Slack
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -508,6 +660,8 @@ const Leads = () => {
             <Download className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Export</span>
           </Button>
+          
+          {/* HubSpot Button */}
           {hubspotLoading ? (
             <Button variant="secondary" size="sm" disabled>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -538,6 +692,39 @@ const Leads = () => {
               </TooltipContent>
             </Tooltip>
           )}
+
+          {/* Slack Button */}
+          {slackLoading ? (
+            <Button variant="secondary" size="sm" disabled>
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </Button>
+          ) : slackConnected ? (
+            <Button 
+              variant="secondary" 
+              onClick={openSlackDialog} 
+              disabled={selectedCards.size === 0}
+              size="sm"
+              className="gap-1"
+            >
+              <img src={slackIcon} alt="Slack" className="h-4 w-4" />
+              <span className="hidden sm:inline">Slack</span>
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/dashboard/integrations">
+                  <Button variant="secondary" size="sm" className="gap-1 opacity-60">
+                    <img src={slackIcon} alt="Slack" className="h-4 w-4" />
+                    <span className="hidden sm:inline">Slack</span>
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Connect Slack in Integrations</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           <Button onClick={triggerScan} size="sm">
             <Camera className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">New Scan</span>
