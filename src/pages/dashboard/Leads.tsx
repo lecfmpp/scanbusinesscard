@@ -177,6 +177,47 @@ const Leads = () => {
     }
   };
 
+  const saveAllSelected = async () => {
+    const selected = cards.filter(c => selectedCards.has(c.id));
+    if (selected.length === 0) {
+      toast.error("Please select at least one card");
+      return;
+    }
+
+    // Check for errors in selected cards
+    const hasErrors = selected.some(c => phoneErrors.has(c.id));
+    if (hasErrors) {
+      toast.error("Please fix phone number errors before saving");
+      return;
+    }
+
+    const cardIds = selected.map(c => c.id);
+    setSavingCards(new Set(cardIds));
+
+    try {
+      const updates = selected.map(card => 
+        supabase
+          .from('business_cards')
+          .update({
+            full_name: card.full_name,
+            job_title: card.job_title,
+            company: card.company,
+            email: card.email,
+            phone: card.phone,
+            website: card.website,
+          })
+          .eq('id', card.id)
+      );
+
+      await Promise.all(updates);
+      toast.success(`Saved ${selected.length} card(s)`);
+    } catch {
+      toast.error("Failed to save some cards");
+    } finally {
+      setSavingCards(new Set());
+    }
+  };
+
   const copySelected = () => {
     const selected = cards.filter(c => selectedCards.has(c.id));
     if (selected.length === 0) {
@@ -253,6 +294,17 @@ const Leads = () => {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            onClick={toggleAll} 
+            size="sm"
+          >
+            {selectedCards.size === cards.length && cards.length > 0 ? "Deselect All" : "Select All"}
+          </Button>
+          <Button variant="secondary" onClick={saveAllSelected} disabled={selectedCards.size === 0} size="sm">
+            <Save className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Save All</span>
+          </Button>
           <Button variant="secondary" onClick={copySelected} disabled={selectedCards.size === 0} size="sm">
             <Copy className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Copy</span>

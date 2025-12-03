@@ -313,13 +313,13 @@ export const HeroSection = () => {
         </div>
         
         {/* Business cards table image */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 md:h-48 overflow-hidden pointer-events-none">
+        <div className="relative max-w-md mx-auto mt-4 md:mt-6 overflow-hidden rounded-xl pointer-events-none">
           <img 
             src={businessCardsTable} 
             alt="Business cards scattered on table" 
-            className="w-full h-full object-cover object-top opacity-60"
+            className="w-full h-auto opacity-80"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
         </div>
       </section>
     </>
