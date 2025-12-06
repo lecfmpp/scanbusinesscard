@@ -14,6 +14,11 @@ import CompareAbbyy from "./pages/CompareAbbyy";
 import CompareSansan from "./pages/CompareSansan";
 import CompareHubspotScanner from "./pages/CompareHubspotScanner";
 import CompareEvernote from "./pages/CompareEvernote";
+import AltCamcard from "./pages/AltCamcard";
+import AltPopl from "./pages/AltPopl";
+import AltAbbyy from "./pages/AltAbbyy";
+import AltScanbizcards from "./pages/AltScanbizcards";
+import AltHaystack from "./pages/AltHaystack";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
 import Events from "./pages/dashboard/Events";
@@ -41,6 +46,13 @@ const App = () => (
             <Route path="/compare/sansan" element={<CompareSansan />} />
             <Route path="/compare/hubspot-scanner" element={<CompareHubspotScanner />} />
             <Route path="/compare/evernote" element={<CompareEvernote />} />
+            
+            {/* Alternative Pages */}
+            <Route path="/camcard-alternative-bulk-scanner" element={<AltCamcard />} />
+            <Route path="/popl-physical-card-scanner-alternative" element={<AltPopl />} />
+            <Route path="/abbyy-business-card-reader-alternative" element={<AltAbbyy />} />
+            <Route path="/scanbizcards-alternative-trade-show-speed" element={<AltScanbizcards />} />
+            <Route path="/haystack-alternative-sales-teams" element={<AltHaystack />} />
             
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
