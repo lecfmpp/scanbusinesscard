@@ -5,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-secondary text-secondary-foreground mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -30,7 +30,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/compare/abbyy" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
-                  vs ABBYY Business Card Reader
+                  vs ABBYY
                 </Link>
               </li>
               <li>
@@ -40,12 +40,44 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/compare/hubspot-scanner" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
-                  vs HubSpot Card Scanner
+                  vs HubSpot Scanner
                 </Link>
               </li>
               <li>
                 <Link to="/compare/evernote" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
-                  vs Evernote Scannable
+                  vs Evernote
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Alternatives */}
+          <div>
+            <h3 className="font-semibold mb-4">Alternatives</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/camcard-alternative-bulk-scanner" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
+                  CamCard Alternative
+                </Link>
+              </li>
+              <li>
+                <Link to="/popl-physical-card-scanner-alternative" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
+                  Popl Alternative
+                </Link>
+              </li>
+              <li>
+                <Link to="/abbyy-business-card-reader-alternative" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
+                  ABBYY Alternative
+                </Link>
+              </li>
+              <li>
+                <Link to="/scanbizcards-alternative-trade-show-speed" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
+                  ScanBizCards Alternative
+                </Link>
+              </li>
+              <li>
+                <Link to="/haystack-alternative-sales-teams" className="text-secondary-foreground/70 hover:text-secondary-foreground transition-colors">
+                  Haystack Alternative
                 </Link>
               </li>
             </ul>
