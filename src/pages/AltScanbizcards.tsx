@@ -9,8 +9,8 @@ const AltScanbizcards = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="ScanBizCards Alternative: Best Bulk Scanner for Trade Show Lead Capture & CRM Sync"
-        description="Need faster lead capture than ScanBizCards? Choose the Bulk Scanner designed for events. Instant CRM sync and Preview CRM for superior lead quality."
+        title="ScanBizCards Alternative: Scan Business Card for Trade Show Lead Capture & CRM Sync"
+        description="Need faster lead capture than ScanBizCards? Choose Scan Business Card designed for events. Instant CRM sync and Preview CRM for superior lead quality."
         canonical="https://www.scanbusinesscard.com/scanbizcards-alternative-trade-show-speed"
       />
       <Header />
@@ -148,7 +148,7 @@ const AltScanbizcards = () => {
               Don't delay follow-up.
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Get the competitive edge at your next trade show. Try the Bulk Scanner alternative to ScanBizCards today!
+              Get the competitive edge at your next trade show. Try Scan Business Card today!
             </p>
             <Button asChild size="lg" className="rounded-full px-8">
               <Link to="/auth">
