@@ -9,8 +9,8 @@ const AltHaystack = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="Haystack Alternative: Bulk Scanner Built for Sales Teams, Events, and Enterprise CRM Sync"
-        description="Haystack is great for individuals, but not for teams. Choose the Bulk Scanner that supports large sales organizations with CRM sync and enterprise lead management."
+        title="Haystack Alternative: Scan Business Card Built for Sales Teams, Events, and Enterprise CRM Sync"
+        description="Haystack is great for individuals, but not for teams. Choose Scan Business Card that supports large sales organizations with CRM sync and enterprise lead management."
         canonical="https://www.scanbusinesscard.com/haystack-alternative-sales-teams"
       />
       <Header />
@@ -24,10 +24,10 @@ const AltHaystack = () => {
               Haystack Alternative
             </div>
             <h1 className="text-4xl md:text-5xl font-bold font-display mb-6 leading-tight">
-              Haystack is Fine. Bulk Scanner is <span className="text-primary">Built for Sales Teams</span>. The Enterprise Alternative.
+              Haystack is Fine. Scan Business Card is <span className="text-primary">Built for Sales Teams</span>. The Enterprise Alternative.
             </h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Haystack is recognized for its beautiful design and focus on digital card sharing. However, for sales managers and growing teams, a card scanner must be an enterprise-grade lead capture tool, not just a personal networking utility. Haystack often lacks the features necessary for high-volume physical card capture, data governance, and scalable CRM integration. ScanBusinessCard is the solution: a robust, scalable Bulk Scanner designed to manage and automate lead flow for the entire sales organization.
+              Haystack is recognized for its beautiful design and focus on digital card sharing. However, for sales managers and growing teams, a card scanner must be an enterprise-grade lead capture tool, not just a personal networking utility. Haystack often lacks the features necessary for high-volume physical card capture, data governance, and scalable CRM integration. Scan Business Card is the solution: a robust, scalable tool designed to manage and automate lead flow for the entire sales organization.
             </p>
           </div>
 

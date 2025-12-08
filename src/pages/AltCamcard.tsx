@@ -148,7 +148,7 @@ const AltCamcard = () => {
               Ready to cut your lead processing time by 90%?
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Stop struggling with CamCard. Try the fastest Bulk Scanner for free today!
+              Stop struggling with CamCard. Try Scan Business Card for free today!
             </p>
             <Button asChild size="lg" className="rounded-full px-8">
               <Link to="/auth">
