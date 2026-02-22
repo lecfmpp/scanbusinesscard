@@ -44,7 +44,7 @@ const Integrations = () => {
 
       const { data, error } = await supabase
         .from('integrations')
-        .select('*')
+        .select('id, provider, created_at, extra_data')
         .eq('user_id', user.id);
 
       if (error) throw error;
