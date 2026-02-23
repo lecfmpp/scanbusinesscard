@@ -7,60 +7,58 @@ serve(async (req) => {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
-    const errorDescription = url.searchParams.get('error_description');
 
-    console.log('HubSpot callback received, code present:', !!code, 'state present:', !!state);
-
-    // Get the frontend URL for redirects
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
 
     if (error) {
-      console.error('HubSpot OAuth error:', error, errorDescription);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=${encodeURIComponent(errorDescription || error)}`);
+      console.error('HubSpot OAuth error:', error);
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Connection+failed`);
     }
 
     if (!code || !state) {
       console.error('Missing code or state');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Missing authorization code`);
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Missing+authorization+code`);
     }
 
-    // Decode state to get user ID
-    let stateData;
-    try {
-      stateData = JSON.parse(atob(state));
-    } catch (e) {
-      console.error('Invalid state:', e);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Invalid state`);
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate state against database (prevents forgery)
+    const { data: stateRecord, error: stateError } = await supabase
+      .from('oauth_states')
+      .select('user_id')
+      .eq('state', state)
+      .eq('provider', 'hubspot')
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    if (stateError || !stateRecord) {
+      console.error('Invalid or expired OAuth state');
+      await supabase.from('oauth_states').delete().lt('expires_at', new Date().toISOString());
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Invalid+or+expired+session`);
     }
 
-    const userId = stateData.userId;
-    if (!userId) {
-      console.error('No user ID in state');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Invalid user`);
-    }
+    const userId = stateRecord.user_id;
+
+    // Delete used state immediately
+    await supabase.from('oauth_states').delete().eq('state', state);
 
     console.log('Processing callback for user:', userId);
 
-    // Exchange code for tokens
     const clientId = Deno.env.get('HUBSPOT_CLIENT_ID');
     const clientSecret = Deno.env.get('HUBSPOT_CLIENT_SECRET');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     if (!clientId || !clientSecret) {
       console.error('HubSpot credentials not configured');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=HubSpot not configured`);
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Integration+not+configured`);
     }
 
     const redirectUri = `${supabaseUrl}/functions/v1/hubspot-callback`;
 
-    console.log('Exchanging code for tokens...');
-    
     const tokenResponse = await fetch('https://api.hubapi.com/oauth/v1/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: clientId,
@@ -71,25 +69,19 @@ serve(async (req) => {
     });
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', tokenResponse.status, errorText);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed to connect to HubSpot`);
+      console.error('Token exchange failed:', tokenResponse.status);
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+connect`);
     }
 
     const tokens = await tokenResponse.json();
-    console.log('Tokens received, expires_in:', tokens.expires_in);
 
-    // Get HubSpot portal ID (hub_id) for reference
+    // Get HubSpot portal ID
     const accessInfoResponse = await fetch('https://api.hubapi.com/oauth/v1/access-tokens/' + tokens.access_token);
     let hubId = null;
     if (accessInfoResponse.ok) {
       const accessInfo = await accessInfoResponse.json();
       hubId = accessInfo.hub_id;
-      console.log('HubSpot portal ID:', hubId);
     }
-
-    // Store tokens in database using service role
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const expiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
@@ -109,7 +101,7 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error('Failed to store tokens:', upsertError);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed to save connection`);
+      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+save+connection`);
     }
 
     console.log('HubSpot integration saved successfully');
@@ -117,6 +109,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
-    return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Connection failed`);
+    return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Connection+failed`);
   }
 });

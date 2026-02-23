@@ -43,11 +43,9 @@ const Integrations = () => {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('integrations')
+        .from('integrations_safe' as any)
         .select('id, provider, created_at, extra_data')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+        .eq('user_id', user.id) as { data: Integration[] | null; error: any };
 
       // Process HubSpot
       const hubspot = data?.find(i => i.provider === 'hubspot');
@@ -203,11 +201,11 @@ const Integrations = () => {
 
       // Get current integration to preserve other extra_data
       const { data: integration } = await supabase
-        .from('integrations')
+        .from('integrations_safe' as any)
         .select('extra_data')
         .eq('user_id', user.id)
         .eq('provider', 'slack')
-        .single();
+        .single() as { data: { extra_data: Record<string, unknown> } | null };
 
       const currentExtraData = (integration?.extra_data as Record<string, unknown>) || {};
       
