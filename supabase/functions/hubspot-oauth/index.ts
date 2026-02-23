@@ -28,6 +28,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
@@ -49,9 +50,28 @@ serve(async (req) => {
       );
     }
 
+    // Generate secure random state and store server-side
+    const state = crypto.randomUUID();
+    const serviceSupabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { error: stateError } = await serviceSupabase
+      .from('oauth_states')
+      .insert({
+        state,
+        user_id: user.id,
+        provider: 'hubspot',
+        expires_at: new Date(Date.now() + 600000).toISOString(), // 10 min
+      });
+
+    if (stateError) {
+      console.error('Failed to store OAuth state:', stateError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to start connection. Please try again.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const redirectUri = `${supabaseUrl}/functions/v1/hubspot-callback`;
     const scopes = ['crm.objects.contacts.write', 'crm.objects.contacts.read'];
-    const state = btoa(JSON.stringify({ userId: user.id, timestamp: Date.now() }));
     
     const authUrl = new URL('https://app.hubspot.com/oauth/authorize');
     authUrl.searchParams.set('client_id', clientId);
