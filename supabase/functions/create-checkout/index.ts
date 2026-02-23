@@ -2,10 +2,14 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 const PRICES = {
   monthly: "price_1SaHqjICOajHGJN5KR7C1V0A",
@@ -13,6 +17,8 @@ const PRICES = {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -30,9 +36,12 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated");
-
-    console.log("[CREATE-CHECKOUT] User authenticated:", user.email);
+    if (!user?.email) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -43,8 +52,6 @@ serve(async (req) => {
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
-
-    console.log("[CREATE-CHECKOUT] Creating checkout session for:", planType);
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -62,16 +69,13 @@ serve(async (req) => {
       },
     });
 
-    console.log("[CREATE-CHECKOUT] Session created:", session.id);
-
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("[CREATE-CHECKOUT] Error:", errorMessage);
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("[CREATE-CHECKOUT] Error:", error);
+    return new Response(JSON.stringify({ error: "Failed to create checkout session. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

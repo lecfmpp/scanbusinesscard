@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 interface Lead {
   id: string;
@@ -41,6 +45,8 @@ function formatMessage(template: string, lead: Lead): string {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -71,7 +77,6 @@ serve(async (req) => {
     const body = await req.json();
     const { leadIds, channelId, action } = body;
 
-    // Get user's Slack integration
     const { data: integration, error: integrationError } = await supabase
       .from('integrations')
       .select('*')
@@ -80,9 +85,9 @@ serve(async (req) => {
       .maybeSingle();
 
     if (integrationError || !integration) {
-      console.error('Integration not found:', integrationError);
+      console.error('Integration not found');
       return new Response(
-        JSON.stringify({ error: 'Slack not connected' }),
+        JSON.stringify({ error: 'Slack is not connected. Please connect it first.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -91,22 +96,17 @@ serve(async (req) => {
     const extraData = integration.extra_data as { message_template?: string } | null;
     const messageTemplate = extraData?.message_template || DEFAULT_TEMPLATE;
 
-    // If action is 'list-channels', return available channels
     if (action === 'list-channels') {
-      console.log('Fetching Slack channels for user:', user.id);
-      
       const channelsResponse = await fetch('https://slack.com/api/conversations.list?types=public_channel&exclude_archived=true&limit=200', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
       });
 
       const channelsData = await channelsResponse.json();
       
       if (!channelsData.ok) {
-        console.error('Failed to fetch channels:', channelsData.error);
+        console.error('Failed to fetch channels');
         return new Response(
-          JSON.stringify({ error: 'Failed to fetch channels' }),
+          JSON.stringify({ error: 'Failed to fetch Slack channels. Please try again.' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -122,7 +122,6 @@ serve(async (req) => {
       );
     }
 
-    // Send leads to channel
     if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No leads provided' }),
@@ -137,29 +136,25 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Sending ${leadIds.length} leads to Slack channel ${channelId} for user:`, user.id);
+    console.log(`Sending ${leadIds.length} leads to Slack for user:`, user.id);
 
-    // Fetch leads from database
     const { data: leads, error: leadsError } = await supabase
       .from('business_cards')
       .select('*')
       .in('id', leadIds);
 
     if (leadsError || !leads) {
-      console.error('Failed to fetch leads:', leadsError);
+      console.error('Failed to fetch leads');
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch leads' }),
+        JSON.stringify({ error: 'Failed to fetch leads. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send each lead to Slack
     let successCount = 0;
     let failCount = 0;
-    const errors: string[] = [];
 
     for (const lead of leads as Lead[]) {
-      // Format message using user's custom template
       const formattedMessage = formatMessage(messageTemplate, lead);
 
       const response = await fetch('https://slack.com/api/chat.postMessage', {
@@ -179,11 +174,9 @@ serve(async (req) => {
 
       if (result.ok) {
         successCount++;
-        console.log('Message sent for lead:', lead.full_name);
       } else {
         failCount++;
-        errors.push(`${lead.full_name}: ${result.error}`);
-        console.error('Failed to send message for lead:', lead.full_name, result.error);
+        console.error('Failed to send message for lead:', lead.full_name);
       }
     }
 
@@ -193,14 +186,13 @@ serve(async (req) => {
       JSON.stringify({ 
         success: successCount, 
         failed: failCount,
-        errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error sending to Slack:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to send leads to Slack' }),
+      JSON.stringify({ error: 'Failed to send leads to Slack. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

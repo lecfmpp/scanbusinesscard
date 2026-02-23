@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 interface Lead {
   id: string;
@@ -17,6 +21,8 @@ interface Lead {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -54,7 +60,6 @@ serve(async (req) => {
 
     console.log(`Sending ${leadIds.length} leads to HubSpot for user:`, user.id);
 
-    // Get user's HubSpot integration
     const { data: integration, error: integrationError } = await supabase
       .from('integrations')
       .select('*')
@@ -65,12 +70,11 @@ serve(async (req) => {
     if (integrationError || !integration) {
       console.error('Integration not found:', integrationError);
       return new Response(
-        JSON.stringify({ error: 'HubSpot not connected' }),
+        JSON.stringify({ error: 'HubSpot is not connected. Please connect it first.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if token needs refresh
     let accessToken = integration.access_token;
     const expiresAt = new Date(integration.expires_at);
     const now = new Date();
@@ -92,7 +96,6 @@ serve(async (req) => {
         const newTokens = await refreshResponse.json();
         accessToken = newTokens.access_token;
         
-        // Update tokens in database using service role
         const serviceSupabase = createClient(
           supabaseUrl,
           Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -118,7 +121,6 @@ serve(async (req) => {
       }
     }
 
-    // Fetch leads from database
     const { data: leads, error: leadsError } = await supabase
       .from('business_cards')
       .select('*')
@@ -127,18 +129,15 @@ serve(async (req) => {
     if (leadsError || !leads) {
       console.error('Failed to fetch leads:', leadsError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch leads' }),
+        JSON.stringify({ error: 'Failed to fetch leads. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Send each lead to HubSpot
     let successCount = 0;
     let failCount = 0;
-    const errors: string[] = [];
 
     for (const lead of leads as Lead[]) {
-      // Parse name into first and last
       const nameParts = (lead.full_name || '').trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
@@ -155,8 +154,6 @@ serve(async (req) => {
         },
       };
 
-      console.log('Creating contact:', lead.full_name);
-
       const response = await fetch('https://api.hubapi.com/crm/v3/objects/contacts', {
         method: 'POST',
         headers: {
@@ -171,10 +168,7 @@ serve(async (req) => {
         console.log('Contact created:', lead.full_name);
       } else {
         failCount++;
-        const errorData = await response.json();
-        const errorMsg = errorData.message || response.statusText;
-        errors.push(`${lead.full_name}: ${errorMsg}`);
-        console.error('Failed to create contact:', lead.full_name, errorData);
+        console.error('Failed to create contact:', lead.full_name);
       }
     }
 
@@ -184,14 +178,13 @@ serve(async (req) => {
       JSON.stringify({ 
         success: successCount, 
         failed: failCount,
-        errors: errors.length > 0 ? errors : undefined,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Error sending to HubSpot:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to send leads to HubSpot' }),
+      JSON.stringify({ error: 'Failed to send leads to HubSpot. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

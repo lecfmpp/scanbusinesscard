@@ -1,28 +1,84 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid user' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { images } = await req.json();
+
+    // Input validation
+    if (!Array.isArray(images) || images.length === 0 || images.length > 10) {
+      return new Response(
+        JSON.stringify({ error: 'Please provide between 1 and 10 images.' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    for (const img of images) {
+      if (typeof img !== 'string' || img.length > 14000000) {
+        return new Response(
+          JSON.stringify({ error: 'One or more images exceed the size limit.' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (!img.match(/^data:image\/(jpeg|png|webp|gif|bmp|heic);base64,/)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid image format. Please use JPEG, PNG, or WebP.' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error. Please try again later.' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const extractedCards = [];
 
-    // Process each image with Gemini - each image may contain MULTIPLE cards
     for (const base64Image of images) {
-      console.log("Processing image for multiple business cards...");
+      console.log("Processing image for user:", user.id);
       
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -103,76 +159,56 @@ Example format:
             { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
-        const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
-        throw new Error("AI gateway error");
+        console.error("AI gateway error:", response.status);
+        return new Response(
+          JSON.stringify({ error: "Failed to process image. Please try again." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       
-      console.log("AI Response content:", content);
-      
       if (content) {
         try {
-          // Clean the response - remove markdown code blocks if present
           let jsonStr = content.trim();
-          if (jsonStr.startsWith("```json")) {
-            jsonStr = jsonStr.slice(7);
-          }
-          if (jsonStr.startsWith("```")) {
-            jsonStr = jsonStr.slice(3);
-          }
-          if (jsonStr.endsWith("```")) {
-            jsonStr = jsonStr.slice(0, -3);
-          }
+          if (jsonStr.startsWith("```json")) jsonStr = jsonStr.slice(7);
+          if (jsonStr.startsWith("```")) jsonStr = jsonStr.slice(3);
+          if (jsonStr.endsWith("```")) jsonStr = jsonStr.slice(0, -3);
           jsonStr = jsonStr.trim();
           
-          console.log("Cleaned JSON string:", jsonStr);
-          
-          // Parse the response - expecting an array of cards
           const cardsArray = JSON.parse(jsonStr);
           
-          // Ensure we have an array
           if (Array.isArray(cardsArray)) {
-            console.log(`Found ${cardsArray.length} card(s) in this image`);
-            
-            // Add each card from this image to our results
             cardsArray.forEach((cardData: any) => {
               extractedCards.push({
                 id: crypto.randomUUID(),
-                fullName: cardData.fullName || "",
-                jobTitle: cardData.jobTitle || "",
-                company: cardData.company || "",
-                email: cardData.email || "",
-                phone: cardData.phone || "",
-                website: cardData.website || "",
+                fullName: String(cardData.fullName || "").slice(0, 200),
+                jobTitle: String(cardData.jobTitle || "").slice(0, 200),
+                company: String(cardData.company || "").slice(0, 200),
+                email: String(cardData.email || "").slice(0, 300),
+                phone: String(cardData.phone || "").slice(0, 50),
+                website: String(cardData.website || "").slice(0, 500),
               });
             });
-          } else {
-            // If not an array, treat as single card
-            console.log("Response was not an array, treating as single card");
+          } else if (cardsArray && typeof cardsArray === 'object') {
             extractedCards.push({
               id: crypto.randomUUID(),
-              fullName: cardsArray.fullName || "",
-              jobTitle: cardsArray.jobTitle || "",
-              company: cardsArray.company || "",
-              email: cardsArray.email || "",
-              phone: cardsArray.phone || "",
-              website: cardsArray.website || "",
+              fullName: String(cardsArray.fullName || "").slice(0, 200),
+              jobTitle: String(cardsArray.jobTitle || "").slice(0, 200),
+              company: String(cardsArray.company || "").slice(0, 200),
+              email: String(cardsArray.email || "").slice(0, 300),
+              phone: String(cardsArray.phone || "").slice(0, 50),
+              website: String(cardsArray.website || "").slice(0, 500),
             });
           }
         } catch (parseError) {
-          console.error("Failed to parse card data:", content, parseError);
-          console.error("Parse error details:", parseError);
-          // Don't add empty card on error - just skip this image
+          console.error("Failed to parse card data from AI response");
         }
-      } else {
-        console.log("No content in AI response");
       }
     }
     
-    console.log(`Total cards extracted: ${extractedCards.length}`);
+    console.log(`Total cards extracted: ${extractedCards.length} for user: ${user.id}`);
 
     return new Response(
       JSON.stringify({ cards: extractedCards }),
@@ -180,10 +216,9 @@ Example format:
     );
   } catch (error) {
     console.error("Error in scan-business-cards:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: "An error occurred while processing your request. Please try again." }),
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });

@@ -1,29 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 serve(async (req) => {
-  // Handle CORS preflight
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Get auth header to verify user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('No authorization header');
       return new Response(
         JSON.stringify({ error: 'Authorization required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Verify the user with Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -32,29 +34,23 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      console.error('User verification failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Invalid user' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Generating HubSpot OAuth URL for user:', user.id);
-
     const clientId = Deno.env.get('HUBSPOT_CLIENT_ID');
     if (!clientId) {
       console.error('HUBSPOT_CLIENT_ID not configured');
       return new Response(
-        JSON.stringify({ error: 'HubSpot not configured' }),
+        JSON.stringify({ error: 'Integration not configured. Please try again later.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build the OAuth URL
     const redirectUri = `${supabaseUrl}/functions/v1/hubspot-callback`;
     const scopes = ['crm.objects.contacts.write', 'crm.objects.contacts.read'];
-    
-    // Use user ID as state for security (will be verified in callback)
     const state = btoa(JSON.stringify({ userId: user.id, timestamp: Date.now() }));
     
     const authUrl = new URL('https://app.hubspot.com/oauth/authorize');
@@ -63,8 +59,6 @@ serve(async (req) => {
     authUrl.searchParams.set('scope', scopes.join(' '));
     authUrl.searchParams.set('state', state);
 
-    console.log('Generated OAuth URL with redirect:', redirectUri);
-
     return new Response(
       JSON.stringify({ url: authUrl.toString() }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -72,7 +66,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error generating OAuth URL:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to generate OAuth URL' }),
+      JSON.stringify({ error: 'Failed to start connection. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

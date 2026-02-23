@@ -4,10 +4,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 type StripeSubscription = Stripe.Subscription;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 const PRODUCTS = {
   monthly: "prod_TXMZt0qfhx94Jc",
@@ -15,6 +19,8 @@ const PRODUCTS = {
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -27,25 +33,37 @@ serve(async (req) => {
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY not set");
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY not set");
+      return new Response(JSON.stringify({ error: "Service configuration error" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
+    }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Authorization required" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Auth error: ${userError.message}`);
+    if (userError || !userData.user?.email) {
+      return new Response(JSON.stringify({ error: "Authentication failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
+    }
     
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated");
-
-    console.log("[CHECK-SUB] Checking subscription for:", user.email);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      console.log("[CHECK-SUB] No customer found");
       return new Response(JSON.stringify({ 
         subscribed: false,
         inTrial: false,
@@ -58,9 +76,7 @@ serve(async (req) => {
     }
 
     const customerId = customers.data[0].id;
-    console.log("[CHECK-SUB] Found customer:", customerId);
 
-    // Check for active or trialing subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "all",
@@ -72,7 +88,6 @@ serve(async (req) => {
     );
 
     if (!activeSub) {
-      console.log("[CHECK-SUB] No active subscription");
       return new Response(JSON.stringify({
         subscribed: false,
         inTrial: false,
@@ -89,11 +104,7 @@ serve(async (req) => {
     const inTrial = activeSub.status === "trialing";
     const subscriptionEnd = new Date(activeSub.current_period_end * 1000).toISOString();
     const trialEnd = activeSub.trial_end ? new Date(activeSub.trial_end * 1000).toISOString() : null;
-
-    // Calculate scans limit based on plan
     const scansLimit = inTrial ? 1 : 30;
-
-    console.log("[CHECK-SUB] Active subscription found:", { planType, inTrial, subscriptionEnd });
 
     return new Response(JSON.stringify({
       subscribed: true,
@@ -101,16 +112,15 @@ serve(async (req) => {
       planType,
       subscriptionEnd,
       trialEnd,
-      scansUsed: 0, // Will be tracked separately
+      scansUsed: 0,
       scansLimit,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("[CHECK-SUB] Error:", errorMessage);
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    console.error("[CHECK-SUB] Error:", error);
+    return new Response(JSON.stringify({ error: "Failed to check subscription status. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
