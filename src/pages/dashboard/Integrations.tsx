@@ -196,30 +196,15 @@ const Integrations = () => {
 
   const saveSlackTemplate = async (template: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      // Get current integration to preserve other extra_data
-      const { data: integration } = await supabase
-        .from('integrations_safe' as any)
-        .select('extra_data')
-        .eq('user_id', user.id)
-        .eq('provider', 'slack')
-        .single() as { data: { extra_data: Record<string, unknown> } | null };
-
-      const currentExtraData = (integration?.extra_data as Record<string, unknown>) || {};
-      
-      const { error } = await supabase
-        .from('integrations')
-        .update({
-          extra_data: {
-            ...currentExtraData,
-            message_template: template,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-        .eq('provider', 'slack');
+      const { data, error } = await supabase.functions.invoke('update-slack-template', {
+        body: { template },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
       if (error) throw error;
 

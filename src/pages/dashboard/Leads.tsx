@@ -124,9 +124,9 @@ const Leads = () => {
       if (!user) return;
 
       const { data } = await supabase
-        .from('integrations')
+        .from('integrations_safe' as any)
         .select('provider')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id) as { data: { provider: string }[] | null };
 
       setHubspotConnected(data?.some(i => i.provider === 'hubspot') || false);
       setSlackConnected(data?.some(i => i.provider === 'slack') || false);
