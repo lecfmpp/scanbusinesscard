@@ -1,12 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '';
+  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -36,7 +42,6 @@ serve(async (req) => {
 
     console.log('Disconnecting Slack for user:', user.id);
 
-    // Get integration to optionally revoke token
     const { data: integration } = await supabase
       .from('integrations')
       .select('access_token')
@@ -44,7 +49,6 @@ serve(async (req) => {
       .eq('provider', 'slack')
       .maybeSingle();
 
-    // Try to revoke token with Slack (best effort)
     if (integration?.access_token) {
       try {
         const clientId = Deno.env.get('SLACK_CLIENT_ID');
@@ -52,22 +56,18 @@ serve(async (req) => {
         
         await fetch('https://slack.com/api/auth.revoke', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({
             token: integration.access_token,
             client_id: clientId || '',
             client_secret: clientSecret || '',
           }),
         });
-        console.log('Slack token revoked');
       } catch (e) {
-        console.log('Token revocation failed (non-critical):', e);
+        console.log('Token revocation failed (non-critical)');
       }
     }
 
-    // Delete integration from database
     const { error: deleteError } = await supabase
       .from('integrations')
       .delete()
@@ -75,14 +75,13 @@ serve(async (req) => {
       .eq('provider', 'slack');
 
     if (deleteError) {
-      console.error('Failed to delete integration:', deleteError);
+      console.error('Failed to delete integration');
       return new Response(
-        JSON.stringify({ error: 'Failed to disconnect' }),
+        JSON.stringify({ error: 'Failed to disconnect. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Slack disconnected successfully');
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -90,7 +89,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error disconnecting Slack:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to disconnect' }),
+      JSON.stringify({ error: 'Failed to disconnect. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
