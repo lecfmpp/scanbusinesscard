@@ -124,6 +124,33 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          provider: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          provider: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          provider?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       scan_usage: {
         Row: {
           created_at: string
@@ -198,7 +225,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      integrations_safe: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          extra_data: Json | null
+          id: string | null
+          provider: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          extra_data?: Json | null
+          id?: string | null
+          provider?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          extra_data?: Json | null
+          id?: string | null
+          provider?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
