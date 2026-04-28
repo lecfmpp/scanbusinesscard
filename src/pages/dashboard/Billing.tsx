@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink, Smartphone } from "lucide-react";
 import { format } from "date-fns";
+import { isNative } from "@/lib/platform";
 
 interface Subscription {
   id: string;
@@ -141,8 +142,23 @@ const Billing = () => {
         )}
       </Card>
 
-      {/* Upgrade Options */}
-      {!isActive && (
+      {/* iOS app: Stripe upgrade hidden — Apple App Store rules require In-App Purchase for digital subscriptions.
+          IAP wiring will be added in a later phase once Apple product IDs exist. */}
+      {!isActive && isNative && (
+        <Card className="p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Smartphone className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">Upgrade on the web</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            To upgrade your plan, please visit scanbusinesscard.com from your browser.
+            In-app purchases are coming soon.
+          </p>
+        </Card>
+      )}
+
+      {/* Upgrade Options — web only */}
+      {!isActive && !isNative && (
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="p-6">
             <h3 className="font-semibold text-lg mb-2">Monthly Plan</h3>
