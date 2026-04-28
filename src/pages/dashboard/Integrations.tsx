@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import hubspotIcon from "@/assets/hubspot-icon.svg";
 import slackIcon from "@/assets/slack-icon.png";
 import SlackTemplateModal, { DEFAULT_TEMPLATE } from "@/components/SlackTemplateModal";
+import { openOAuthNative } from "@/lib/platform/oauth";
 
 interface Integration {
   id: string;
@@ -95,7 +96,11 @@ const Integrations = () => {
       if (error) throw error;
 
       if (data?.url) {
-        window.location.href = data.url;
+        // Native: open in in-app browser; deep link returns to app. Web: redirect as before.
+        const handledNatively = await openOAuthNative(data.url);
+        if (!handledNatively) {
+          window.location.href = data.url;
+        }
       } else {
         throw new Error('No OAuth URL returned');
       }
@@ -157,7 +162,10 @@ const Integrations = () => {
       }
 
       if (data?.url) {
-        window.location.href = data.url;
+        const handledNatively = await openOAuthNative(data.url);
+        if (!handledNatively) {
+          window.location.href = data.url;
+        }
       } else {
         throw new Error('No OAuth URL returned');
       }
