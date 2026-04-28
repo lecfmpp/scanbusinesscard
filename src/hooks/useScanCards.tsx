@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isNative } from "@/lib/platform";
+import { pickImagesNative } from "@/lib/platform/camera";
 
 interface BusinessCard {
   id: string;
@@ -36,7 +38,20 @@ export const useScanCards = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const triggerScan = () => {
+  const triggerScan = async () => {
+    if (isNative) {
+      try {
+        const base64Images = await pickImagesNative();
+        if (base64Images && base64Images.length > 0) {
+          toast.success(`${base64Images.length} image${base64Images.length !== 1 ? 's' : ''} selected!`);
+          await processImages(base64Images);
+        }
+      } catch (err) {
+        console.error("Native camera pick failed:", err);
+        toast.error("Failed to access camera/photos.");
+      }
+      return;
+    }
     fileInputRef.current?.click();
   };
 
