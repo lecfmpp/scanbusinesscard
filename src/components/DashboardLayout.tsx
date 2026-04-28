@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet, useSearchParams } from "react-router-dom";
-import { Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2 } from "lucide-react";
+import { Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/dashboard/leads", icon: Users, label: "All Leads" },
   { href: "/dashboard/integrations", icon: Link2, label: "Integrations" },
   { href: "/dashboard/billing", icon: Receipt, label: "Billing" },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 const DashboardLayout = () => {

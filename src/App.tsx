@@ -25,6 +25,7 @@ import Events from "./pages/dashboard/Events";
 import Leads from "./pages/dashboard/Leads";
 import Billing from "./pages/dashboard/Billing";
 import Integrations from "./pages/dashboard/Integrations";
+import Settings from "./pages/dashboard/Settings";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="leads/:eventId" element={<Leads />} />
               <Route path="integrations" element={<Integrations />} />
               <Route path="billing" element={<Billing />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
