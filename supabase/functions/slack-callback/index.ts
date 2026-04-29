@@ -1,6 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const NATIVE_SCHEME = 'scanbusinesscard://oauth-callback';
+
+function buildRedirect(platform: string, frontendUrl: string, path: string, query: string) {
+  // path begins with '/'; query begins with '?' or is ''
+  if (platform === 'ios') {
+    // Encode the intended path so the app can route appropriately
+    const sep = query ? '&' : '?';
+    return `${NATIVE_SCHEME}${query}${sep}path=${encodeURIComponent(path)}`;
+  }
+  return `${frontendUrl}${path}${query}`;
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -27,7 +39,7 @@ serve(async (req) => {
     // Validate state against database (prevents forgery)
     const { data: stateRecord, error: stateError } = await supabase
       .from('oauth_states')
-      .select('user_id')
+      .select('user_id, platform')
       .eq('state', state)
       .eq('provider', 'slack')
       .gt('expires_at', new Date().toISOString())
@@ -41,6 +53,7 @@ serve(async (req) => {
     }
 
     const userId = stateRecord.user_id;
+    const platform = stateRecord.platform || 'web';
 
     // Delete used state immediately
     await supabase.from('oauth_states').delete().eq('state', state);
