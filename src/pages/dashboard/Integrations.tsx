@@ -9,6 +9,7 @@ import hubspotIcon from "@/assets/hubspot-icon.svg";
 import slackIcon from "@/assets/slack-icon.png";
 import SlackTemplateModal, { DEFAULT_TEMPLATE } from "@/components/SlackTemplateModal";
 import { openOAuthNative } from "@/lib/platform/oauth";
+import { isNative } from "@/lib/platform";
 
 interface Integration {
   id: string;
@@ -91,6 +92,7 @@ const Integrations = () => {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        body: { platform: isNative ? 'ios' : 'web' },
       });
 
       if (error) throw error;
@@ -154,6 +156,7 @@ const Integrations = () => {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        body: { platform: isNative ? 'ios' : 'web' },
       });
 
       if (error) {
