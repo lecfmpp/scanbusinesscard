@@ -65,7 +65,7 @@ serve(async (req) => {
 
     if (!clientId || !clientSecret) {
       console.error('Slack credentials not configured');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Integration+not+configured`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Integration+not+configured'));
     }
 
     const redirectUri = `${supabaseUrl}/functions/v1/slack-callback`;
@@ -82,10 +82,10 @@ serve(async (req) => {
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     if (!tokenData.ok) {
       console.error('Token exchange failed:', tokenData.error);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+connect`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+connect'));
     }
 
     const { error: upsertError } = await supabase
@@ -96,7 +96,7 @@ serve(async (req) => {
         access_token: tokenData.access_token,
         refresh_token: null,
         expires_at: null,
-        extra_data: { 
+        extra_data: {
           team_id: tokenData.team?.id,
           team_name: tokenData.team?.name,
           bot_user_id: tokenData.bot_user_id,
@@ -108,11 +108,11 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error('Failed to store tokens:', upsertError);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+save+connection`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+save+connection'));
     }
 
     console.log('Slack integration saved successfully');
-    return Response.redirect(`${frontendUrl}/dashboard/leads?success=slack`);
+    return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/leads', '?success=slack'));
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
