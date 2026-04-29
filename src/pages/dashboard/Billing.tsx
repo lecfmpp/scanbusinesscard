@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink, Smartphone } from "lucide-react";
+import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink, Apple, RotateCw } from "lucide-react";
 import { format } from "date-fns";
-import { isNative } from "@/lib/platform";
+import { isNative, isIOS } from "@/lib/platform";
+import { purchaseApplePlan, restoreApplePurchases } from "@/lib/platform/iap";
 
 interface Subscription {
   id: string;
@@ -21,6 +22,7 @@ const Billing = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [iapLoading, setIapLoading] = useState<null | "monthly" | "yearly" | "restore">(null);
 
   useEffect(() => {
     fetchSubscription();
@@ -74,6 +76,35 @@ const Billing = () => {
     } catch (error) {
       console.error("Error creating checkout:", error);
       toast.error("Failed to start checkout");
+    }
+  };
+
+  const handleApplePurchase = async (planType: 'monthly' | 'yearly') => {
+    setIapLoading(planType);
+    try {
+      await purchaseApplePlan(planType);
+      toast.success("Purchase started — complete the prompt from Apple.");
+      // Subscription row is updated by verify-apple-iap once Apple finalizes the txn.
+      setTimeout(fetchSubscription, 4000);
+    } catch (err) {
+      console.error("[IAP] purchase error:", err);
+      toast.error("Could not start purchase. Please try again.");
+    } finally {
+      setIapLoading(null);
+    }
+  };
+
+  const handleRestore = async () => {
+    setIapLoading("restore");
+    try {
+      await restoreApplePurchases();
+      toast.success("Restoring previous purchases…");
+      setTimeout(fetchSubscription, 4000);
+    } catch (err) {
+      console.error("[IAP] restore error:", err);
+      toast.error("Could not restore purchases.");
+    } finally {
+      setIapLoading(null);
     }
   };
 
@@ -142,19 +173,62 @@ const Billing = () => {
         )}
       </Card>
 
-      {/* iOS app: Stripe upgrade hidden — Apple App Store rules require In-App Purchase for digital subscriptions.
-          IAP wiring will be added in a later phase once Apple product IDs exist. */}
-      {!isActive && isNative && (
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Smartphone className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-lg">Upgrade on the web</h3>
+      {/* iOS in-app purchase upgrade options (Apple StoreKit). Web users skip this entirely. */}
+      {!isActive && isNative && isIOS && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="p-6">
+            <h3 className="font-semibold text-lg mb-2">Monthly Plan</h3>
+            <p className="text-sm text-muted-foreground mb-4">Billed monthly via Apple</p>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />30 scans per month</li>
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Up to 20 cards per scan</li>
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Export to CSV</li>
+            </ul>
+            <Button
+              className="w-full"
+              variant="outline"
+              onClick={() => handleApplePurchase("monthly")}
+              disabled={iapLoading !== null}
+            >
+              {iapLoading === "monthly" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Apple className="h-4 w-4 mr-2" />}
+              Subscribe Monthly
+            </Button>
+          </Card>
+
+          <Card className="p-6 border-primary relative">
+            <Badge className="absolute -top-3 left-6">Best Value</Badge>
+            <h3 className="font-semibold text-lg mb-2">Yearly Plan</h3>
+            <p className="text-sm text-muted-foreground mb-4">Billed yearly via Apple</p>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />30 scans per month</li>
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Up to 20 cards per scan</li>
+              <li className="flex items-center gap-2 text-sm"><CheckCircle className="h-4 w-4 text-green-500" />Export to CSV</li>
+              <li className="flex items-center gap-2 text-sm text-primary font-medium">
+                <CheckCircle className="h-4 w-4 text-primary" />Live WhatsApp support forever
+              </li>
+            </ul>
+            <Button
+              className="w-full"
+              onClick={() => handleApplePurchase("yearly")}
+              disabled={iapLoading !== null}
+            >
+              {iapLoading === "yearly" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Apple className="h-4 w-4 mr-2" />}
+              Subscribe Yearly
+            </Button>
+          </Card>
+
+          <div className="md:col-span-2">
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={handleRestore}
+              disabled={iapLoading !== null}
+            >
+              {iapLoading === "restore" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RotateCw className="h-4 w-4 mr-2" />}
+              Restore Purchases
+            </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            To upgrade your plan, please visit scanbusinesscard.com from your browser.
-            In-app purchases are coming soon.
-          </p>
-        </Card>
+        </div>
       )}
 
       {/* Upgrade Options — web only */}

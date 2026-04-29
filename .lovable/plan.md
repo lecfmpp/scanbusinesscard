@@ -138,3 +138,39 @@ I noticed a `slack-oauth` "Failed to fetch" in your console logs from earlier to
 1. **Payments on iOS — Option A (free on iOS, upgrade on web) or Option B (Apple IAP)?**
 2. **Add Sign in with Apple now**, or wait until needed?
 3. **Want me to also fix the Slack OAuth "Failed to fetch" error** while I'm in there, or keep it separate?
+
+---
+
+## Phase 5 status — Apple IAP scaffolding (completed, awaiting your Apple credentials)
+
+The IAP code is wired end-to-end with placeholder identifiers. Web is unaffected (all IAP code is gated by `isNative && isIOS` and uses dynamic imports — `cordova-plugin-purchase` is never bundled into the web build).
+
+### What was added
+- `src/lib/platform/iap.ts` — `purchaseApplePlan()` + `restoreApplePurchases()` shim using `cordova-plugin-purchase`.
+- `supabase/functions/verify-apple-iap/index.ts` — server-side receipt verification against Apple's `verifyReceipt` endpoint, upserts the `subscriptions` row.
+- `src/pages/dashboard/Billing.tsx` — iOS-only Monthly/Yearly purchase cards + Restore Purchases button.
+- `supabase/config.toml` — registered the new function.
+
+### 🔧 Things YOU need to replace before App Store submission
+
+1. **Apple Developer Program** ($99/year) — https://developer.apple.com/programs/
+2. **App Bundle ID** in App Store Connect — must match `capacitor.config.ts` → `appId` (currently `app.lovable.ae0d1a377afd4717a989caa75593f819`). Either change the appId here to your real bundle ID, or create an app with that exact bundle ID in App Store Connect.
+3. **Create two auto-renewable subscription products** in App Store Connect with these IDs (or change the IDs in code):
+   - `com.scanbusinesscard.pro.monthly`
+   - `com.scanbusinesscard.pro.yearly`
+   File to edit: `src/lib/platform/iap.ts` → `APPLE_PRODUCT_IDS`. Also update `APPLE_PRODUCT_TO_PLAN` in `supabase/functions/verify-apple-iap/index.ts` if you change the IDs.
+4. **App-Specific Shared Secret** — App Store Connect → My Apps → App Information → App-Specific Shared Secret → "Generate". Add it to backend secrets as `APPLE_SHARED_SECRET`.
+5. (Optional) **Sign in with Apple** — only required if you ever add a non-Google third-party login. We have email + Google today, so this is not blocking.
+
+### Build & ship (on a Mac)
+```
+git pull
+npm install
+npx cap add ios
+npm run build && npx cap sync ios
+npx cap open ios
+# In Xcode: set Team + real Bundle ID, add capability "In-App Purchase",
+# set Deployment Target ≥ iOS 14, Archive → Distribute → App Store Connect
+```
+Then in App Store Connect: fill app listing, upload screenshots, submit for review (24–72h typical).
+
