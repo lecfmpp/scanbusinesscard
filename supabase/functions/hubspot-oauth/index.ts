@@ -50,6 +50,15 @@ serve(async (req) => {
       );
     }
 
+    // Read optional platform hint from request body (web | ios)
+    let platform = 'web';
+    try {
+      const body = await req.json();
+      if (body?.platform === 'ios') platform = 'ios';
+    } catch {
+      // no body — default to web
+    }
+
     // Generate secure random state and store server-side
     const state = crypto.randomUUID();
     const serviceSupabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -59,6 +68,7 @@ serve(async (req) => {
         state,
         user_id: user.id,
         provider: 'hubspot',
+        platform,
         expires_at: new Date(Date.now() + 600000).toISOString(), // 10 min
       });
 

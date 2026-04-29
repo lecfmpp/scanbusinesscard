@@ -29,11 +29,19 @@ export async function setupDeepLinks(): Promise<void> {
   const { Browser } = await import(/* @vite-ignore */ "@capacitor/browser");
 
   App.addListener("appUrlOpen", async (event: { url: string }) => {
-    if (event.url.startsWith("scanbusinesscard://")) {
-      await Browser.close();
-      // The web app's existing /oauth-callback route logic will run if we route there.
-      const path = event.url.replace("scanbusinesscard://", "/");
-      window.location.href = path.startsWith("/") ? path : `/${path}`;
+    if (!event.url.startsWith("scanbusinesscard://")) return;
+    await Browser.close();
+
+    // Expected shape: scanbusinesscard://oauth-callback?path=/dashboard/leads&success=slack
+    try {
+      const u = new URL(event.url);
+      const path = u.searchParams.get("path") || "/dashboard/integrations";
+      u.searchParams.delete("path");
+      const remaining = u.searchParams.toString();
+      const target = remaining ? `${path}${path.includes("?") ? "&" : "?"}${remaining}` : path;
+      window.location.href = target.startsWith("/") ? target : `/${target}`;
+    } catch {
+      window.location.href = "/dashboard/integrations";
     }
   });
 }

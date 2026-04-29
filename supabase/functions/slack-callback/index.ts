@@ -1,6 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const NATIVE_SCHEME = 'scanbusinesscard://oauth-callback';
+
+function buildRedirect(platform: string, frontendUrl: string, path: string, query: string) {
+  // path begins with '/'; query begins with '?' or is ''
+  if (platform === 'ios') {
+    // Encode the intended path so the app can route appropriately
+    const sep = query ? '&' : '?';
+    return `${NATIVE_SCHEME}${query}${sep}path=${encodeURIComponent(path)}`;
+  }
+  return `${frontendUrl}${path}${query}`;
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -27,7 +39,7 @@ serve(async (req) => {
     // Validate state against database (prevents forgery)
     const { data: stateRecord, error: stateError } = await supabase
       .from('oauth_states')
-      .select('user_id')
+      .select('user_id, platform')
       .eq('state', state)
       .eq('provider', 'slack')
       .gt('expires_at', new Date().toISOString())
@@ -41,6 +53,7 @@ serve(async (req) => {
     }
 
     const userId = stateRecord.user_id;
+    const platform = stateRecord.platform || 'web';
 
     // Delete used state immediately
     await supabase.from('oauth_states').delete().eq('state', state);
@@ -52,7 +65,7 @@ serve(async (req) => {
 
     if (!clientId || !clientSecret) {
       console.error('Slack credentials not configured');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Integration+not+configured`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Integration+not+configured'));
     }
 
     const redirectUri = `${supabaseUrl}/functions/v1/slack-callback`;
@@ -69,10 +82,10 @@ serve(async (req) => {
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     if (!tokenData.ok) {
       console.error('Token exchange failed:', tokenData.error);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+connect`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+connect'));
     }
 
     const { error: upsertError } = await supabase
@@ -83,7 +96,7 @@ serve(async (req) => {
         access_token: tokenData.access_token,
         refresh_token: null,
         expires_at: null,
-        extra_data: { 
+        extra_data: {
           team_id: tokenData.team?.id,
           team_name: tokenData.team?.name,
           bot_user_id: tokenData.bot_user_id,
@@ -95,11 +108,11 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error('Failed to store tokens:', upsertError);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+save+connection`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+save+connection'));
     }
 
     console.log('Slack integration saved successfully');
-    return Response.redirect(`${frontendUrl}/dashboard/leads?success=slack`);
+    return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/leads', '?success=slack'));
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';

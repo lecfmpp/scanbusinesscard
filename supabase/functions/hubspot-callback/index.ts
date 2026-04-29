@@ -1,6 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const NATIVE_SCHEME = 'scanbusinesscard://oauth-callback';
+
+function buildRedirect(platform: string, frontendUrl: string, path: string, query: string) {
+  if (platform === 'ios') {
+    const sep = query ? '&' : '?';
+    return `${NATIVE_SCHEME}${query}${sep}path=${encodeURIComponent(path)}`;
+  }
+  return `${frontendUrl}${path}${query}`;
+}
+
 serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -27,7 +37,7 @@ serve(async (req) => {
     // Validate state against database (prevents forgery)
     const { data: stateRecord, error: stateError } = await supabase
       .from('oauth_states')
-      .select('user_id')
+      .select('user_id, platform')
       .eq('state', state)
       .eq('provider', 'hubspot')
       .gt('expires_at', new Date().toISOString())
@@ -40,6 +50,7 @@ serve(async (req) => {
     }
 
     const userId = stateRecord.user_id;
+    const platform = stateRecord.platform || 'web';
 
     // Delete used state immediately
     await supabase.from('oauth_states').delete().eq('state', state);
@@ -51,7 +62,7 @@ serve(async (req) => {
 
     if (!clientId || !clientSecret) {
       console.error('HubSpot credentials not configured');
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Integration+not+configured`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Integration+not+configured'));
     }
 
     const redirectUri = `${supabaseUrl}/functions/v1/hubspot-callback`;
@@ -70,7 +81,7 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       console.error('Token exchange failed:', tokenResponse.status);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+connect`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+connect'));
     }
 
     const tokens = await tokenResponse.json();
@@ -101,11 +112,11 @@ serve(async (req) => {
 
     if (upsertError) {
       console.error('Failed to store tokens:', upsertError);
-      return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Failed+to+save+connection`);
+      return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/integrations', '?error=Failed+to+save+connection'));
     }
 
     console.log('HubSpot integration saved successfully');
-    return Response.redirect(`${frontendUrl}/dashboard/leads?success=hubspot`);
+    return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/leads', '?success=hubspot'));
   } catch (error) {
     console.error('Callback error:', error);
     const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
