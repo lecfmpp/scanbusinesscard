@@ -29,7 +29,7 @@ async function getStore() {
   if (storeReady) return storeReady;
 
   storeReady = (async () => {
-    const mod: any = await import(/* @vite-ignore */ "cordova-plugin-purchase");
+    const mod: any = await (import(/* @vite-ignore */ "cordova-plugin-purchase" as any) as Promise<any>);
     const store = mod.default ?? mod.store ?? (globalThis as any).CdvPurchase?.store;
     if (!store) throw new Error("cordova-plugin-purchase store not available");
 
