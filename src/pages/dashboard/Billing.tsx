@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink, Smartphone } from "lucide-react";
+import { CreditCard, Calendar, CheckCircle, Loader2, ExternalLink, Apple, RotateCw } from "lucide-react";
 import { format } from "date-fns";
-import { isNative } from "@/lib/platform";
+import { isNative, isIOS } from "@/lib/platform";
+import { purchaseApplePlan, restoreApplePurchases } from "@/lib/platform/iap";
 
 interface Subscription {
   id: string;
@@ -21,6 +22,7 @@ const Billing = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [iapLoading, setIapLoading] = useState<null | "monthly" | "yearly" | "restore">(null);
 
   useEffect(() => {
     fetchSubscription();
@@ -74,6 +76,35 @@ const Billing = () => {
     } catch (error) {
       console.error("Error creating checkout:", error);
       toast.error("Failed to start checkout");
+    }
+  };
+
+  const handleApplePurchase = async (planType: 'monthly' | 'yearly') => {
+    setIapLoading(planType);
+    try {
+      await purchaseApplePlan(planType);
+      toast.success("Purchase started — complete the prompt from Apple.");
+      // Subscription row is updated by verify-apple-iap once Apple finalizes the txn.
+      setTimeout(fetchSubscription, 4000);
+    } catch (err) {
+      console.error("[IAP] purchase error:", err);
+      toast.error("Could not start purchase. Please try again.");
+    } finally {
+      setIapLoading(null);
+    }
+  };
+
+  const handleRestore = async () => {
+    setIapLoading("restore");
+    try {
+      await restoreApplePurchases();
+      toast.success("Restoring previous purchases…");
+      setTimeout(fetchSubscription, 4000);
+    } catch (err) {
+      console.error("[IAP] restore error:", err);
+      toast.error("Could not restore purchases.");
+    } finally {
+      setIapLoading(null);
     }
   };
 
