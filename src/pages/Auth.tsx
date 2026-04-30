@@ -342,7 +342,9 @@ export default function Auth() {
                     Sign in to manage your leads and integrations.
                   </p>
                 </div>
-                
+
+                <SocialButtons />
+
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
