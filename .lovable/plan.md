@@ -186,3 +186,42 @@ Then in App Store Connect: fill app listing, upload screenshots, submit for revi
   - Web → Lovable Cloud managed OAuth (browser redirect).
   - iOS native → `@capacitor-community/apple-sign-in` (Apple's native sheet) + `supabase.auth.signInWithIdToken`.
 - 🔧 Replace later in `src/lib/platform/apple-auth.ts` → `clientId` with your real iOS bundle ID once you create the App ID in Apple Developer Console with "Sign In with Apple" capability enabled.
+
+
+---
+
+## Phase 7 — White-label OAuth (BYOK) — code-ready, just plug in keys later
+
+The current code already uses `lovable.auth.signInWithOAuth("google" | "apple")`, which transparently uses **your own credentials** the moment you configure them in the Lovable Cloud dashboard. **No code changes will be required** — only the steps below.
+
+### Google (BYOK)
+1. Google Cloud Console → APIs & Services → **OAuth consent screen**:
+   - App name: `ScanBusinessCard`
+   - User support email + logo (PNG ≤ 1MB) + app domain `scanbusinesscard.com`
+   - Authorized domains: `scanbusinesscard.com`, `lovable.app`
+   - Scopes: `openid`, `email`, `profile`
+2. APIs & Services → **Credentials** → Create Credentials → **OAuth Client ID** → Web application:
+   - Authorized redirect URI: copy from Lovable Cloud dashboard → Users → Auth Settings → Sign-in Methods → Google → "Callback URL"
+3. Copy the generated **Client ID** + **Client Secret**.
+4. Lovable Cloud dashboard → Users → Auth Settings → Google → "Use your own credentials" → paste + Save.
+
+Result: Google consent screen now shows **ScanBusinessCard** + your logo instead of "Lovable".
+
+### Apple (BYOK) — required for App Store anyway
+1. Apple Developer → Identifiers → create a **Services ID** (e.g. `com.scanbusinesscard.web`) with "Sign In with Apple" enabled.
+   - Configure → Domain: `scanbusinesscard.com` and `scanbusinesscard.lovable.app`
+   - Return URL: copy from Lovable Cloud dashboard → Users → Auth Settings → Apple → "Callback URL"
+2. Apple Developer → Keys → "+" → enable **Sign In with Apple** → download the `.p8` file (one-time download). Note the **Key ID** (10 chars) and your **Team ID** (top right).
+3. Lovable Cloud dashboard → Users → Auth Settings → Apple → "Use your own credentials":
+   - Client ID = your Services ID (e.g. `com.scanbusinesscard.web`)
+   - Click "Generate Secret" → paste Team ID, Key ID, Client ID, and the `.p8` contents → generates a JWT (valid 6 months — **set a calendar reminder to regenerate**).
+   - Save.
+
+Result: Apple consent screen on web now shows **ScanBusinessCard**.
+
+### iOS native Apple Sign-In
+Already wired in `src/lib/platform/apple-auth.ts`. When you create the iOS App ID in Apple Developer Console:
+- Enable "Sign In with Apple" capability on the App ID.
+- Replace `clientId` in `apple-auth.ts` with your real bundle ID (e.g. `com.scanbusinesscard.app`).
+
+No backend changes needed — `supabase.auth.signInWithIdToken({ provider: "apple", token })` already accepts the native identity token.
