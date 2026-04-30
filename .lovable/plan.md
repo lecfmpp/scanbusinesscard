@@ -174,3 +174,15 @@ npx cap open ios
 ```
 Then in App Store Connect: fill app listing, upload screenshots, submit for review (24–72h typical).
 
+
+---
+
+## Phase 6 — Sign in with Apple + Google (completed)
+
+- Installed `@lovable.dev/cloud-auth-js` and `@capacitor-community/apple-sign-in`.
+- Configured Lovable Cloud managed social auth for Google + Apple.
+- `/auth` page now shows "Continue with Google" and "Continue with Apple" above the email forms (login + signup).
+- Apple flow:
+  - Web → Lovable Cloud managed OAuth (browser redirect).
+  - iOS native → `@capacitor-community/apple-sign-in` (Apple's native sheet) + `supabase.auth.signInWithIdToken`.
+- 🔧 Replace later in `src/lib/platform/apple-auth.ts` → `clientId` with your real iOS bundle ID once you create the App ID in Apple Developer Console with "Sign In with Apple" capability enabled.
