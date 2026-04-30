@@ -411,7 +411,9 @@ export default function Auth() {
                     Start scanning business cards in seconds.
                   </p>
                 </div>
-                
+
+                <SocialButtons />
+
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Work email</Label>
