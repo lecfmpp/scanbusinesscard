@@ -3,9 +3,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get('origin') || '';
-  const isAllowed = origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
+  const isAllowed = origin === 'https://scanbusinesscard.com' || origin.endsWith('.scanbusinesscard.com') || origin.endsWith('.netlify.app') || origin.endsWith('.lovable.app') || origin.startsWith('http://localhost:');
   return {
-    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.lovable.app',
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://scanbusinesscard.com',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   };
 }
@@ -66,28 +66,44 @@ serve(async (req) => {
       }
     }
 
+    // AI provider selection.
+    // Prefers Google Gemini direct. Falls back to the Lovable gateway when
+    // GEMINI_API_KEY is absent, so this function keeps working on the old
+    // project during the migration cutover. Both are OpenAI-compatible, so
+    // the request/response shape below is identical either way.
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY is not configured");
+    const useGemini = Boolean(GEMINI_API_KEY);
+
+    const AI_API_KEY = GEMINI_API_KEY ?? LOVABLE_API_KEY;
+    const AI_ENDPOINT = useGemini
+      ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+      : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    // Gemini direct uses a bare model id; the Lovable gateway namespaces it.
+    const AI_MODEL = useGemini ? "gemini-2.5-flash" : "google/gemini-2.5-flash";
+
+    if (!AI_API_KEY) {
+      console.error("No AI key configured. Set GEMINI_API_KEY (or LOVABLE_API_KEY).");
       return new Response(
         JSON.stringify({ error: 'Service configuration error. Please try again later.' }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    console.log(`AI provider: ${useGemini ? "gemini-direct" : "lovable-gateway"}`);
 
     const extractedCards = [];
 
     for (const base64Image of images) {
       console.log("Processing image for user:", user.id);
       
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(AI_ENDPOINT, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+          "Authorization": `Bearer ${AI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: AI_MODEL,
           messages: [
             {
               role: "system",

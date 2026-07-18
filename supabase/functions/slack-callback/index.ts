@@ -20,7 +20,7 @@ serve(async (req) => {
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
-    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
+    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.com';
 
     if (error) {
       console.error('Slack OAuth error:', error);
@@ -115,7 +115,7 @@ serve(async (req) => {
     return Response.redirect(buildRedirect(platform, frontendUrl, '/dashboard/leads', '?success=slack'));
   } catch (error) {
     console.error('Callback error:', error);
-    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.lovable.app';
+    const frontendUrl = Deno.env.get('FRONTEND_URL') || 'https://scanbusinesscard.com';
     return Response.redirect(`${frontendUrl}/dashboard/integrations?error=Connection+failed`);
   }
 });

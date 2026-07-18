@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Secrets - NEVER commit these. This repo is public.
+# .env holds only the publishable/anon key (safe), but .secrets.env holds the
+# service_role key, which bypasses Row Level Security on the entire database.
+.secrets.env
+*.secrets.env
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
