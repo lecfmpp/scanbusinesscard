@@ -1,0 +1,45 @@
+# ScanBusinessCard
+
+> AI-powered bulk business card scanner for sales teams. Scan 20+ cards in a
+> single photo, extract structured contact data automatically, and export
+> leads to Slack, HubSpot, or Google Sheets. Built for trade shows and events
+> where speed and never losing a lead matter most.
+
+## What it does
+
+- Bulk scanning: capture many business cards in one photo instead of one at a time.
+- AI data capture: extracts name, title, company, email, and phone.
+- CRM export: push captured leads to Slack, HubSpot, and Google Sheets.
+- Event organization: group leads by event for follow-up.
+- Native iOS app (in progress) plus a web app; account deletion and privacy controls built in.
+
+## Key pages
+
+- [Home](https://scanbusinesscard.com/): product overview and how it works.
+- [Pricing](https://scanbusinesscard.com/pricing): Free and Pro (monthly/yearly) plans.
+- [Sign in / Sign up](https://scanbusinesscard.com/auth): Google, Apple, or email.
+- [Privacy Policy](https://scanbusinesscard.com/privacy)
+- [Terms](https://scanbusinesscard.com/terms)
+
+## Comparisons & alternatives
+
+- [vs CamCard](https://scanbusinesscard.com/compare/camcard)
+- [vs ABBYY Business Card Reader](https://scanbusinesscard.com/compare/abbyy)
+- [vs Sansan](https://scanbusinesscard.com/compare/sansan)
+- [vs HubSpot business card scanner](https://scanbusinesscard.com/compare/hubspot-scanner)
+- [vs Evernote](https://scanbusinesscard.com/compare/evernote)
+- [CamCard alternative](https://scanbusinesscard.com/camcard-alternative-bulk-scanner)
+- [Popl alternative](https://scanbusinesscard.com/popl-physical-card-scanner-alternative)
+- [ScanBizCards alternative](https://scanbusinesscard.com/scanbizcards-alternative-trade-show-speed)
+- [Haystack alternative](https://scanbusinesscard.com/haystack-alternative-sales-teams)
+
+## For agents
+
+- API description (OpenAPI): https://scanbusinesscard.com/.well-known/openapi.json
+- API catalog: https://scanbusinesscard.com/.well-known/api-catalog
+- Authentication guide: https://scanbusinesscard.com/auth.md
+- Agent skills index: https://scanbusinesscard.com/.well-known/agent-skills/index.json
+
+## Contact
+
+support@scanbusinesscard.com

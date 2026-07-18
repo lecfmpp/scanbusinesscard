@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "scan-business-cards",
+      "type": "skill-md",
+      "description": "Capture contacts from business cards in bulk and export them to Slack, HubSpot, or Google Sheets via the ScanBusinessCard API.",
+      "url": "https://scanbusinesscard.com/.well-known/agent-skills/scan-business-cards/SKILL.md",
+      "digest": "sha256:a2195416befe218ceba9b2ec51e637c3f9003c0cf17b92c792b6095afffc2358"
+    }
+  ]
+}

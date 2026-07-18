@@ -1,0 +1,94 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ScanBusinessCard API",
+    "version": "1.0.0",
+    "description": "Public API surface for ScanBusinessCard, implemented as Supabase Edge Functions. Bulk business-card scanning, lead management, and CRM export (Slack, HubSpot, Google Sheets). Most endpoints require a Supabase-issued bearer token; see /auth.md for authentication.",
+    "contact": {
+      "name": "ScanBusinessCard Support",
+      "email": "support@scanbusinesscard.com",
+      "url": "https://scanbusinesscard.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1",
+      "description": "Supabase Edge Functions"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase-issued access token. Obtain via the authorization server at https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1."
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/scan-business-cards": {
+      "post": {
+        "summary": "Scan business cards from an image",
+        "description": "Accepts one or more card images and returns extracted structured contact data (name, title, company, email, phone).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": { "type": "string", "description": "Base64-encoded or URL image reference" }
+                  },
+                  "eventId": { "type": "string", "description": "Event to associate the extracted leads with" }
+                },
+                "required": ["images"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Extracted leads" },
+          "401": { "description": "Missing or invalid bearer token" }
+        }
+      }
+    },
+    "/send-to-slack": {
+      "post": {
+        "summary": "Export leads to Slack",
+        "responses": { "200": { "description": "Sent" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/send-to-hubspot": {
+      "post": {
+        "summary": "Export leads to HubSpot",
+        "responses": { "200": { "description": "Sent" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/check-subscription": {
+      "get": {
+        "summary": "Get the current user's subscription status",
+        "responses": { "200": { "description": "Subscription status" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/create-checkout": {
+      "post": {
+        "summary": "Create a Stripe checkout session (web only)",
+        "responses": { "200": { "description": "Checkout URL" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/delete-account": {
+      "post": {
+        "summary": "Delete the current user's account and all associated data",
+        "responses": { "200": { "description": "Account deleted" }, "401": { "description": "Unauthorized" } }
+      }
+    }
+  }
+}

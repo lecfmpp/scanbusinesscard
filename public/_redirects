@@ -1,0 +1,4 @@
+# SPA client-side routing fallback.
+# Real files (static assets, /.well-known/*, robots.txt, auth.md, llms.txt,
+# sitemap.xml) are served first; only unmatched paths fall through to index.html.
+/*    /index.html   200

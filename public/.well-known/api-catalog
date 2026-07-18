@@ -1,0 +1,35 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1",
+      "service-desc": [
+        {
+          "href": "https://scanbusinesscard.com/.well-known/openapi.json",
+          "type": "application/json",
+          "title": "ScanBusinessCard OpenAPI 3.1 specification"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://scanbusinesscard.com/auth.md",
+          "type": "text/markdown",
+          "title": "ScanBusinessCard API & agent authentication guide"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://scanbusinesscard.com/.well-known/oauth-protected-resource",
+          "type": "application/json",
+          "title": "OAuth Protected Resource Metadata"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/health",
+          "type": "application/json",
+          "title": "Auth service health"
+        }
+      ]
+    }
+  ]
+}

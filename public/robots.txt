@@ -1,3 +1,8 @@
+# Content Signals (https://contentsignals.org/) — declares how this site's
+# content may be used. search = allowed (we want SEO); ai-input = allowed so
+# AI assistants can ground answers on our content (AEO); ai-train = not allowed.
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,7 +15,24 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# AI answer engines / assistants — allowed to read for grounding (AEO).
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
 Sitemap: https://scanbusinesscard.com/sitemap.xml

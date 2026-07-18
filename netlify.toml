@@ -1,0 +1,20 @@
+# Netlify build & serve config for ScanBusinessCard (migrated off Lovable)
+# Backend stays on the existing Supabase (Lovable Cloud) project — this only
+# controls how the static web app is built and served.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Vite reads VITE_* at build time. Set these in Netlify UI
+  # (Site settings → Environment variables) to match .env:
+  #   VITE_SUPABASE_URL
+  #   VITE_SUPABASE_PUBLISHABLE_KEY
+  #   VITE_SUPABASE_PROJECT_ID
+
+# SPA fallback + header rules live in public/_redirects and public/_headers
+# so they are copied into dist/ on every build. Netlify serves real static
+# files (robots.txt, /.well-known/*, auth.md, llms.txt) before the SPA
+# fallback, so those are never shadowed by index.html.

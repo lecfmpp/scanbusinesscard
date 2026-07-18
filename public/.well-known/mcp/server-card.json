@@ -1,0 +1,22 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schemas/server-card/2025-06.json",
+  "serverInfo": {
+    "name": "scanbusinesscard",
+    "version": "1.0.0",
+    "title": "ScanBusinessCard MCP Server",
+    "description": "Agent access to ScanBusinessCard: scan business cards, manage captured leads, and export them to Slack, HubSpot, or Google Sheets."
+  },
+  "endpoint": "https://scanbusinesscard.com/mcp",
+  "transport": "streamable-http",
+  "capabilities": {
+    "tools": {},
+    "resources": {},
+    "prompts": {}
+  },
+  "authorization": {
+    "type": "oauth2",
+    "protectedResourceMetadata": "https://scanbusinesscard.com/.well-known/oauth-protected-resource",
+    "authorizationServer": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1"
+  },
+  "documentation": "https://scanbusinesscard.com/auth.md"
+}
