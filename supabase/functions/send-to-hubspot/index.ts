@@ -60,7 +60,18 @@ serve(async (req) => {
 
     console.log(`Sending ${leadIds.length} leads to HubSpot for user:`, user.id);
 
-    const { data: integration, error: integrationError } = await supabase
+    // OAuth tokens are reachable only by the service role — `authenticated` has
+    // no SELECT on public.integrations. Reading this with the caller's JWT fails
+    // outright, which made the function report HubSpot as disconnected even when
+    // it was connected. Still filtered by the caller's own user_id below, so
+    // this reads nothing the caller does not already own.
+    const serviceSupabase = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false } }
+    );
+
+    const { data: integration, error: integrationError } = await serviceSupabase
       .from('integrations')
       .select('*')
       .eq('user_id', user.id)
@@ -95,12 +106,7 @@ serve(async (req) => {
       if (refreshResponse.ok) {
         const newTokens = await refreshResponse.json();
         accessToken = newTokens.access_token;
-        
-        const serviceSupabase = createClient(
-          supabaseUrl,
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-        );
-        
+
         await serviceSupabase
           .from('integrations')
           .update({

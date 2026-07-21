@@ -42,7 +42,16 @@ serve(async (req) => {
 
     console.log('Disconnecting Slack for user:', user.id);
 
-    const { data: integration } = await supabase
+    // Only the service role can read tokens. With the caller's JWT this read
+    // fails silently, the revoke below is skipped, and the row is deleted while
+    // the token stays valid at Slack. Scoped to the caller's own user_id.
+    const serviceSupabase = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false } }
+    );
+
+    const { data: integration } = await serviceSupabase
       .from('integrations')
       .select('access_token')
       .eq('user_id', user.id)
