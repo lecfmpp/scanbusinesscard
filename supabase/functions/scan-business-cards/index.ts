@@ -66,6 +66,81 @@ serve(async (req) => {
       }
     }
 
+    // ---- Scan quota -------------------------------------------------------
+    // Enforced here because this is the only place that cannot be bypassed; the
+    // client gate exists purely to show the paywall before the camera opens.
+    // One image is one scan, so a batch of 10 costs 10 — otherwise the whole
+    // allowance could be spent in a single request.
+    const admin = createClient(
+      supabaseUrl,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false } }
+    );
+
+    const TRIAL_SCANS = 1;
+    const PAID_SCANS = 30;
+
+    const { data: sub } = await admin
+      .from('subscriptions')
+      .select('status, current_period_end')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const subscriptionActive =
+      sub?.status === 'active' &&
+      (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
+    const scansLimit = subscriptionActive ? PAID_SCANS : TRIAL_SCANS;
+
+    const now = new Date();
+    const { data: usageRow } = await admin
+      .from('scan_usage')
+      .select('id, scan_count, period_end')
+      .eq('user_id', user.id)
+      .order('period_start', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let usageId: string | null = usageRow?.id ?? null;
+    let scansUsed: number = usageRow?.scan_count ?? 0;
+
+    // Roll the window over once it lapses, so each period starts from zero
+    // instead of accumulating for the life of the account.
+    const windowExpired = usageRow?.period_end
+      ? new Date(usageRow.period_end) <= now
+      : false;
+
+    if (!usageRow || windowExpired) {
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+      const { data: created, error: usageInsertError } = await admin
+        .from('scan_usage')
+        .insert({
+          user_id: user.id,
+          scan_count: 0,
+          period_start: now.toISOString(),
+          period_end: periodEnd.toISOString(),
+        })
+        .select('id')
+        .single();
+      if (usageInsertError) console.error('Failed to open usage window:', usageInsertError);
+      usageId = created?.id ?? null;
+      scansUsed = 0;
+    }
+
+    if (scansUsed + images.length > scansLimit) {
+      return new Response(
+        JSON.stringify({
+          error: subscriptionActive
+            ? 'You have used all your scans for this period.'
+            : 'Your free scan has been used. Subscribe to keep scanning.',
+          code: 'quota_exceeded',
+          scansUsed,
+          scansLimit,
+        }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // AI provider selection.
     // Prefers Google Gemini direct. Falls back to the Lovable gateway when
     // GEMINI_API_KEY is absent, so this function keeps working on the old
@@ -226,8 +301,22 @@ Example format:
     
     console.log(`Total cards extracted: ${extractedCards.length} for user: ${user.id}`);
 
+    // Charge the quota only once the AI actually ran. Billing on entry would
+    // burn a scan on an upstream failure the user had no control over.
+    if (usageId) {
+      const { error: usageUpdateError } = await admin
+        .from('scan_usage')
+        .update({ scan_count: scansUsed + images.length, updated_at: new Date().toISOString() })
+        .eq('id', usageId);
+      if (usageUpdateError) console.error('Failed to record usage:', usageUpdateError);
+    }
+
     return new Response(
-      JSON.stringify({ cards: extractedCards }),
+      JSON.stringify({
+        cards: extractedCards,
+        scansUsed: scansUsed + images.length,
+        scansLimit,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

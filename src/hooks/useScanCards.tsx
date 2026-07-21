@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isNative } from "@/lib/platform";
 import { pickImagesNative } from "@/lib/platform/camera";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Paywall } from "@/components/Paywall";
 
 interface BusinessCard {
   id: string;
@@ -15,6 +17,23 @@ interface BusinessCard {
   website: string;
 }
 
+/**
+ * The edge function answers 402 with `{ code: "quota_exceeded" }` when the user
+ * is out of scans. supabase-js surfaces that as an opaque error, so the real
+ * body has to be read off the attached Response to tell "out of scans" apart
+ * from a genuine failure — one opens the paywall, the other is an error toast.
+ */
+async function isQuotaError(error: unknown): Promise<boolean> {
+  const context = (error as { context?: Response })?.context;
+  if (!context || typeof context.clone !== "function") return false;
+  try {
+    const body = await context.clone().json();
+    return body?.code === "quota_exceeded";
+  } catch {
+    return false;
+  }
+}
+
 export const useScanCards = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,6 +42,8 @@ export const useScanCards = () => {
   const [pendingCards, setPendingCards] = useState<BusinessCard[]>([]);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const subscription = useSubscription();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -39,6 +60,14 @@ export const useScanCards = () => {
   }, []);
 
   const triggerScan = async () => {
+    // Open the paywall before the camera rather than after, so the user never
+    // frames a shot only to be told it will not be processed. Signed-out users
+    // are left alone: they get their first scan, then the signup prompt.
+    if (isLoggedIn && !subscription.hasScansLeft) {
+      setShowPaywall(true);
+      return;
+    }
+
     if (isNative) {
       try {
         const base64Images = await pickImagesNative();
@@ -64,15 +93,24 @@ export const useScanCards = () => {
         body: { images: base64Images }
       });
       
-      if (error) throw error;
-      
+      if (error) {
+        if (await isQuotaError(error)) {
+          setShowPaywall(true);
+          return;
+        }
+        throw error;
+      }
+
       const cards: BusinessCard[] = data.cards;
-      
+
+      // A scan was consumed server-side, so pull the new balance for the meter.
+      subscription.refresh();
+
       if (cards.length === 0) {
         toast.error("No business cards detected. Please try again with a clearer image.");
         return;
       }
-      
+
       toast.success(`Found ${cards.length} business card${cards.length !== 1 ? 's' : ''}!`);
       
       setPendingCards(cards);
@@ -202,6 +240,21 @@ export const useScanCards = () => {
     />
   );
 
+  // Returned as a component, matching FileInput above, so every screen that
+  // can start a scan gets the paywall without wiring up its own state.
+  const PaywallDialog = () => (
+    <Paywall
+      open={showPaywall}
+      onOpenChange={setShowPaywall}
+      reason="quota"
+      scansLimit={subscription.scansLimit}
+      onPurchased={() => {
+        setShowPaywall(false);
+        subscription.refresh();
+      }}
+    />
+  );
+
   return {
     triggerScan,
     isProcessing,
@@ -213,5 +266,7 @@ export const useScanCards = () => {
     handleSignupSuccess,
     handleEventSelected,
     FileInput,
+    PaywallDialog,
+    subscription,
   };
 };

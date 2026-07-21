@@ -17,12 +17,14 @@ export const CTASection = () => {
     handleSignupSuccess,
     handleEventSelected,
     FileInput,
+    PaywallDialog,
   } = useScanCards();
 
   return (
     <>
       {isProcessing && <ScanningAnimation />}
       <FileInput />
+      <PaywallDialog />
       
       <SignupModal
         isOpen={showSignupModal}

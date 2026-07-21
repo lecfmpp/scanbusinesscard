@@ -18,6 +18,58 @@ const PRODUCTS = {
   yearly: "prod_TXMapCdiBJurER",
 };
 
+const TRIAL_SCANS = 1;
+const PAID_SCANS = 30;
+
+/** Scans consumed in the live window. A lapsed window reads as zero, matching
+ *  scan-business-cards, which opens a fresh one on the next scan. */
+async function readScansUsed(admin: any, userId: string): Promise<number> {
+  const { data } = await admin
+    .from("scan_usage")
+    .select("scan_count, period_end")
+    .eq("user_id", userId)
+    .order("period_start", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return 0;
+  if (data.period_end && new Date(data.period_end) <= new Date()) return 0;
+  return data.scan_count ?? 0;
+}
+
+/**
+ * Mirror the Stripe answer into public.subscriptions.
+ *
+ * scan-business-cards enforces the quota off that table alone — it cannot call
+ * Stripe on every scan. Without this sync a paying Stripe customer would have
+ * no row, be treated as trial, and get blocked at one scan. Apple IAP already
+ * writes the same table from verify-apple-iap, so this makes the table the one
+ * place both billing paths agree on.
+ */
+async function syncSubscriptionRow(
+  admin: any,
+  userId: string,
+  fields: {
+    status: string;
+    planType?: string;
+    periodStart?: string | null;
+    periodEnd?: string | null;
+  }
+) {
+  const { error } = await admin.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      status: fields.status,
+      plan_type: fields.planType ?? "monthly",
+      current_period_start: fields.periodStart ?? null,
+      current_period_end: fields.periodEnd ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+  if (error) console.error("[CHECK-SUB] could not sync subscription row:", error);
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
@@ -59,16 +111,32 @@ serve(async (req) => {
     }
     
     const user = userData.user;
+    const scansUsed = await readScansUsed(supabaseClient, user.id);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      return new Response(JSON.stringify({ 
-        subscribed: false,
+      // No Stripe customer does not mean unsubscribed: the user may have bought
+      // through Apple IAP, which verify-apple-iap records directly. Report that
+      // row rather than overwriting it with an inactive Stripe verdict.
+      const { data: existing } = await supabaseClient
+        .from("subscriptions")
+        .select("status, plan_type, current_period_end")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const appleActive =
+        existing?.status === "active" &&
+        (!existing.current_period_end || new Date(existing.current_period_end) > new Date());
+
+      return new Response(JSON.stringify({
+        subscribed: appleActive,
         inTrial: false,
-        scansUsed: 0,
-        scansLimit: 1,
+        planType: appleActive ? existing?.plan_type : undefined,
+        subscriptionEnd: appleActive ? existing?.current_period_end : undefined,
+        scansUsed,
+        scansLimit: appleActive ? PAID_SCANS : TRIAL_SCANS,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -88,11 +156,12 @@ serve(async (req) => {
     );
 
     if (!activeSub) {
+      await syncSubscriptionRow(supabaseClient, user.id, { status: "inactive" });
       return new Response(JSON.stringify({
         subscribed: false,
         inTrial: false,
-        scansUsed: 0,
-        scansLimit: 1,
+        scansUsed,
+        scansLimit: TRIAL_SCANS,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -104,7 +173,17 @@ serve(async (req) => {
     const inTrial = activeSub.status === "trialing";
     const subscriptionEnd = new Date(activeSub.current_period_end * 1000).toISOString();
     const trialEnd = activeSub.trial_end ? new Date(activeSub.trial_end * 1000).toISOString() : null;
-    const scansLimit = inTrial ? 1 : 30;
+    const scansLimit = inTrial ? TRIAL_SCANS : PAID_SCANS;
+
+    // Record trialing distinctly from active. scan-business-cards grants the
+    // paid allowance only to status 'active', so collapsing the two here would
+    // hand a 7-day trial the full 30 scans instead of the 1 it is sold with.
+    await syncSubscriptionRow(supabaseClient, user.id, {
+      status: inTrial ? "trialing" : "active",
+      planType,
+      periodStart: new Date(activeSub.current_period_start * 1000).toISOString(),
+      periodEnd: subscriptionEnd,
+    });
 
     return new Response(JSON.stringify({
       subscribed: true,
@@ -112,7 +191,7 @@ serve(async (req) => {
       planType,
       subscriptionEnd,
       trialEnd,
-      scansUsed: 0,
+      scansUsed,
       scansLimit,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

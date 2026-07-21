@@ -111,6 +111,7 @@ const Leads = () => {
     handleSignupSuccess,
     handleEventSelected,
     FileInput,
+    PaywallDialog,
   } = useScanCards();
 
   useEffect(() => {
@@ -496,6 +497,7 @@ const Leads = () => {
     <>
       {isProcessing && <ScanningAnimation />}
       <FileInput />
+      <PaywallDialog />
       
       <SignupModal
         isOpen={showSignupModal}

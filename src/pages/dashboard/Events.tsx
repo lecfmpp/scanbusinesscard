@@ -33,6 +33,8 @@ const Events = () => {
     handleSignupSuccess,
     handleEventSelected,
     FileInput,
+    PaywallDialog,
+    subscription,
   } = useScanCards();
 
   useEffect(() => {
@@ -86,6 +88,7 @@ const Events = () => {
     <>
       {isProcessing && <ScanningAnimation />}
       <FileInput />
+      <PaywallDialog />
       
       <SignupModal
         isOpen={showSignupModal}
@@ -113,6 +116,38 @@ const Events = () => {
             Scan New Cards
           </Button>
         </div>
+
+        {/* Usage meter. Showing the balance before it runs out turns the paywall
+            into an expected next step rather than a wall the user hits blind. */}
+        {!subscription.loading && subscription.scansLimit > 0 && (
+          <div className="mb-6 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium">
+                  {subscription.scansRemaining} of {subscription.scansLimit} scans left
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {subscription.subscribed && !subscription.inTrial
+                    ? "Resets at the end of your billing period"
+                    : "Free trial"}
+                </p>
+              </div>
+              {!subscription.subscribed || subscription.inTrial ? (
+                <Button size="sm" variant="outline" onClick={() => navigate("/dashboard/billing")}>
+                  Upgrade
+                </Button>
+              ) : null}
+            </div>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{
+                  width: `${Math.min(100, (subscription.scansUsed / subscription.scansLimit) * 100)}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {events.length === 0 ? (
           <Card className="p-12 text-center">

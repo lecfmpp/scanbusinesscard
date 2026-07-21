@@ -2,7 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
+  /* Entrance for paywall content. Paired with an inline animation-delay to
+     stagger children, so the sheet reads as one motion instead of a pop. */
+  .animate-rise-in {
+    animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* Respect the user's motion preference — required for accessibility, and
+     Apple flags gratuitous motion in review. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-rise-in {
+      animation: none;
+    }
+  }
+
   /* iOS safe areas. These depend on viewport-fit=cover in index.html —
      without it every inset resolves to 0 and these become no-ops. */
   .pt-safe {

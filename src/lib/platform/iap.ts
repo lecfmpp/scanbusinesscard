@@ -76,6 +76,37 @@ async function verifyReceiptOnServer(transaction: any) {
   if (error) throw error;
 }
 
+export interface ApplePrices {
+  monthly: string | null;
+  yearly: string | null;
+}
+
+/**
+ * Localized price strings straight from StoreKit, e.g. "R$ 49,90".
+ *
+ * Never hardcode prices in the iOS paywall: the App Store charges in the user's
+ * own currency and tier, so a hardcoded "$9" would show the wrong number to most
+ * of the world and misstate the price Apple actually bills — a 3.1.2 rejection.
+ * Returns nulls on web or before the store has loaded, so the caller can fall
+ * back to its web pricing.
+ */
+export async function getApplePrices(): Promise<ApplePrices> {
+  if (!isNative || !isIOS) return { monthly: null, yearly: null };
+  try {
+    const store = await getStore();
+    if (!store) return { monthly: null, yearly: null };
+    const priceOf = (id: string) =>
+      store.get(id)?.getOffer()?.pricingPhases?.[0]?.price ?? null;
+    return {
+      monthly: priceOf(APPLE_PRODUCT_IDS.monthly),
+      yearly: priceOf(APPLE_PRODUCT_IDS.yearly),
+    };
+  } catch (err) {
+    console.error("[IAP] could not read prices:", err);
+    return { monthly: null, yearly: null };
+  }
+}
+
 export async function purchaseApplePlan(plan: ApplePlan): Promise<boolean> {
   if (!isNative || !isIOS) return false;
   const store = await getStore();

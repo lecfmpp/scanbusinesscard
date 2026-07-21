@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
+import { isNative, isIOS } from "@/lib/platform";
+import { Paywall } from "@/components/Paywall";
 import { toast } from "sonner";
 
 const MONTHLY_PRICE = 9;
@@ -13,12 +15,24 @@ const YEARLY_SAVINGS = MONTHLY_PRICE * 12 - YEARLY_PRICE;
 export const PricingCard = () => {
   const [isYearly, setIsYearly] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  // /pricing is reachable from the header inside the packaged app. Sending an
+  // iOS user to Stripe from here breaks App Store guideline 3.1.1, so on iOS the
+  // CTA opens the IAP paywall instead — which also carries the StoreKit prices,
+  // restore button and renewal disclosures Apple requires.
+  const onApple = isNative && isIOS;
 
   const handleSubscribe = async () => {
+    if (onApple) {
+      setPaywallOpen(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         toast.error("Please sign in to subscribe");
         window.location.href = "/auth";
@@ -30,9 +44,9 @@ export const PricingCard = () => {
       });
 
       if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
+      if (!data?.url) throw new Error("Checkout session missing a URL");
+      // Same tab, not window.open: popups are blocked in an in-app webview.
+      window.location.href = data.url;
     } catch (error: any) {
       toast.error(error.message || "Failed to create checkout session");
     } finally {
@@ -52,8 +66,9 @@ export const PricingCard = () => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Toggle */}
-      <div className="flex items-center justify-center gap-4 mb-6">
+      {/* Toggle. Hidden on iOS: the plan is picked inside the IAP paywall,
+          where the prices come from StoreKit rather than these constants. */}
+      <div className={`items-center justify-center gap-4 mb-6 ${onApple ? "hidden" : "flex"}`}>
         <span className={`text-sm font-medium ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}>
           Monthly
         </span>
@@ -68,7 +83,7 @@ export const PricingCard = () => {
       </div>
 
       {/* Savings message - handwritten style */}
-      {isYearly && (
+      {isYearly && !onApple && (
         <div className="text-center mb-4 animate-fade-in">
           <p 
             className="text-primary font-handwriting text-lg transform -rotate-2"
@@ -89,18 +104,29 @@ export const PricingCard = () => {
         
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl">Pro Plan</CardTitle>
-          <div className="mt-4">
-            <span className="text-5xl font-bold">
-              ${isYearly ? YEARLY_PRICE : MONTHLY_PRICE}
-            </span>
-            <span className="text-muted-foreground ml-2">
-              /{isYearly ? "year" : "month"}
-            </span>
-          </div>
-          {isYearly && (
-            <p className="text-sm text-muted-foreground mt-1">
-              Just ${(YEARLY_PRICE / 12).toFixed(2)}/month
+          {onApple ? (
+            // Never print a hardcoded price on iOS — the App Store bills in the
+            // user's own currency and tier, so any figure here would misstate
+            // the actual charge. Real prices come from StoreKit in the paywall.
+            <p className="mt-4 text-sm text-muted-foreground">
+              Monthly and yearly plans, billed through the App Store.
             </p>
+          ) : (
+            <>
+              <div className="mt-4">
+                <span className="text-5xl font-bold">
+                  ${isYearly ? YEARLY_PRICE : MONTHLY_PRICE}
+                </span>
+                <span className="text-muted-foreground ml-2">
+                  /{isYearly ? "year" : "month"}
+                </span>
+              </div>
+              {isYearly && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Just ${(YEARLY_PRICE / 12).toFixed(2)}/month
+                </p>
+              )}
+            </>
           )}
         </CardHeader>
 
@@ -131,14 +157,16 @@ export const PricingCard = () => {
             className="w-full"
             size="lg"
           >
-            {isLoading ? "Loading..." : "Start 7-Day Free Trial"}
+            {isLoading ? "Loading..." : onApple ? "See plans" : "Start 7-Day Free Trial"}
           </Button>
-          
+
           <p className="text-xs text-center text-muted-foreground mt-3">
             Cancel anytime. No questions asked.
           </p>
         </CardContent>
       </Card>
+
+      {onApple && <Paywall open={paywallOpen} onOpenChange={setPaywallOpen} />}
     </div>
   );
 };
