@@ -1,8 +1,8 @@
 {
-  "issuer": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1",
-  "authorization_endpoint": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/authorize",
-  "token_endpoint": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/token",
-  "jwks_uri": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/.well-known/jwks.json",
+  "issuer": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1",
+  "authorization_endpoint": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/authorize",
+  "token_endpoint": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/token",
+  "jwks_uri": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/.well-known/jwks.json",
   "registration_endpoint": "https://scanbusinesscard.com/auth",
   "grant_types_supported": [
     "authorization_code",

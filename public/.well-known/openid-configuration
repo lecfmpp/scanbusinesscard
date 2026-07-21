@@ -1,9 +1,9 @@
 {
-  "issuer": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1",
-  "authorization_endpoint": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/authorize",
-  "token_endpoint": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/token",
-  "userinfo_endpoint": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/user",
-  "jwks_uri": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/.well-known/jwks.json",
+  "issuer": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1",
+  "authorization_endpoint": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/authorize",
+  "token_endpoint": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/token",
+  "userinfo_endpoint": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/user",
+  "jwks_uri": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/.well-known/jwks.json",
   "grant_types_supported": [
     "authorization_code",
     "refresh_token",

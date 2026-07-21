@@ -1,7 +1,7 @@
 {
-  "resource": "https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1",
+  "resource": "https://yvfutrzyckkeikwstovq.supabase.co/functions/v1",
   "authorization_servers": [
-    "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1"
+    "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1"
   ],
   "scopes_supported": [
     "openid",

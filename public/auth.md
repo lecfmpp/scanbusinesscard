@@ -11,13 +11,13 @@ of a ScanBusinessCard user.
 
 ## Resource
 
-- **Resource identifier:** `https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1`
+- **Resource identifier:** `https://yvfutrzyckkeikwstovq.supabase.co/functions/v1`
 - **Protected Resource Metadata:** <https://scanbusinesscard.com/.well-known/oauth-protected-resource>
 - **OpenAPI description:** <https://scanbusinesscard.com/.well-known/openapi.json>
 
 ## Authorization servers
 
-- **Issuer:** `https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1`
+- **Issuer:** `https://yvfutrzyckkeikwstovq.supabase.co/auth/v1`
 - **Authorization Server Metadata:** <https://scanbusinesscard.com/.well-known/oauth-authorization-server>
 - **OpenID Connect discovery:** <https://scanbusinesscard.com/.well-known/openid-configuration>
 
@@ -41,7 +41,7 @@ signed-in user rather than registering its own client.
 
 To obtain a token programmatically, run the OAuth 2.0 Authorization Code flow
 (PKCE, `S256`) against the issuer above, or exchange user credentials at
-`POST https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/token`.
+`POST https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/token`.
 
 ## Scopes
 
@@ -50,7 +50,7 @@ To obtain a token programmatically, run the OAuth 2.0 Authorization Code flow
 ## Revocation
 
 Revoke a session by calling
-`POST https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/logout` with the bearer
+`POST https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/logout` with the bearer
 token, or delete the account entirely via `POST /functions/v1/delete-account`.
 
 ## Contact

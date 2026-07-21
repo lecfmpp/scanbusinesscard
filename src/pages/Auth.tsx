@@ -10,7 +10,6 @@ import SEO from "@/components/SEO";
 import { CheckCircle2, ArrowRight, Sparkles, Apple } from "lucide-react";
 import logoIcon from "@/assets/logo-icon.png";
 import TestimonialsSection from "@/components/TestimonialsSection";
-import { lovable } from "@/integrations/lovable";
 import { isNative, isIOS } from "@/lib/platform";
 import { signInWithAppleNative } from "@/lib/platform/apple-auth";
 
@@ -140,16 +139,18 @@ export default function Auth() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
     });
-    if (result.error) {
+    if (error) {
       toast.error("Google sign-in failed. Please try again.");
       setLoading(false);
       return;
     }
-    if (result.redirected) return; // browser redirect
-    // session set
+    // On success Supabase redirects the browser to the provider; nothing else to do.
   };
 
   const handleApple = async () => {
@@ -158,11 +159,14 @@ export default function Auth() {
       if (isNative && isIOS) {
         await signInWithAppleNative();
       } else {
-        const result = await lovable.auth.signInWithOAuth("apple", {
-          redirect_uri: window.location.origin + "/dashboard",
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+          },
         });
-        if (result.error) throw result.error;
-        if (result.redirected) return;
+        if (error) throw error;
+        // On success Supabase redirects the browser to the provider.
       }
     } catch (err: any) {
       toast.error(err?.message || "Apple sign-in failed.");

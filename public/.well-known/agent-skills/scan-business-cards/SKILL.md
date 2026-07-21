@@ -15,12 +15,12 @@ All API calls require a Supabase-issued bearer token. See
 <https://scanbusinesscard.com/auth.md> and the OAuth metadata at
 <https://scanbusinesscard.com/.well-known/oauth-protected-resource>.
 
-Base URL: `https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1`
+Base URL: `https://yvfutrzyckkeikwstovq.supabase.co/functions/v1`
 
 ## Steps
 
 1. **Authenticate.** Obtain an access token from the authorization server
-   (`https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1`). Send it as
+   (`https://yvfutrzyckkeikwstovq.supabase.co/auth/v1`). Send it as
    `Authorization: Bearer <token>` on every request.
 2. **Scan.** `POST /scan-business-cards` with a JSON body
    `{ "images": ["<base64-or-url>"], "eventId": "<optional>" }`.

@@ -16,7 +16,7 @@
   "authorization": {
     "type": "oauth2",
     "protectedResourceMetadata": "https://scanbusinesscard.com/.well-known/oauth-protected-resource",
-    "authorizationServer": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1"
+    "authorizationServer": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1"
   },
   "documentation": "https://scanbusinesscard.com/auth.md"
 }

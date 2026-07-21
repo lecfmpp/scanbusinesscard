@@ -1,7 +1,7 @@
 {
   "linkset": [
     {
-      "anchor": "https://jyduaqgmcerjvrpshgap.supabase.co/functions/v1",
+      "anchor": "https://yvfutrzyckkeikwstovq.supabase.co/functions/v1",
       "service-desc": [
         {
           "href": "https://scanbusinesscard.com/.well-known/openapi.json",
@@ -25,7 +25,7 @@
       ],
       "status": [
         {
-          "href": "https://jyduaqgmcerjvrpshgap.supabase.co/auth/v1/health",
+          "href": "https://yvfutrzyckkeikwstovq.supabase.co/auth/v1/health",
           "type": "application/json",
           "title": "Auth service health"
         }
