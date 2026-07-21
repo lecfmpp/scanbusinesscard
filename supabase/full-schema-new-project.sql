@@ -208,6 +208,15 @@ GRANT SELECT ON public.integrations_safe TO anon;
 REVOKE SELECT ON public.integrations FROM anon;
 REVOKE SELECT ON public.integrations FROM authenticated;
 
+-- The view above is security_invoker, so it reads public.integrations with the
+-- CALLER's privileges. The blanket REVOKE therefore breaks the view too — the
+-- grant check fails before RLS is consulted, and every authenticated read of
+-- integrations_safe errors out. Grant SELECT back on the token-free columns
+-- only: RLS still limits rows to the owner (auth.uid() = user_id), while
+-- access_token and refresh_token stay unreadable even on a direct query.
+GRANT SELECT (id, user_id, provider, extra_data, expires_at, created_at, updated_at)
+  ON public.integrations TO authenticated;
+
 
 -- ---------- oauth_states (service role only) ----------
 CREATE TABLE IF NOT EXISTS public.oauth_states (

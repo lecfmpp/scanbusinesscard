@@ -123,10 +123,14 @@ const Leads = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('integrations_safe' as any)
         .select('provider')
-        .eq('user_id', user.id) as { data: { provider: string }[] | null };
+        .eq('user_id', user.id) as { data: { provider: string }[] | null; error: any };
+
+      // A denied read is indistinguishable from an empty result unless we check,
+      // and silently reports connected integrations as disconnected.
+      if (error) throw error;
 
       setHubspotConnected(data?.some(i => i.provider === 'hubspot') || false);
       setSlackConnected(data?.some(i => i.provider === 'slack') || false);

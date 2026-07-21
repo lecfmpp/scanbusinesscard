@@ -49,6 +49,11 @@ const Integrations = () => {
         .select('id, provider, created_at, extra_data')
         .eq('user_id', user.id) as { data: Integration[] | null; error: any };
 
+      // Surface read failures instead of treating them as "nothing connected".
+      // A denied read here looks identical to an empty result, which silently
+      // showed every integration as disconnected even when it was connected.
+      if (error) throw error;
+
       // Process HubSpot
       const hubspot = data?.find(i => i.provider === 'hubspot');
       if (hubspot) {
