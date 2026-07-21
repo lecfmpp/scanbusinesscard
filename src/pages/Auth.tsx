@@ -31,6 +31,14 @@ const FEATURES = [
   "Never lose a lead from events again",
 ];
 
+// Apple sign-in is hidden until the Apple provider is enabled on the Supabase
+// project. Both code paths below depend on it: the web path calls
+// signInWithOAuth, and the native iOS path exchanges Apple's identity token via
+// signInWithIdToken — each one fails while the provider is disabled. Once it is
+// enabled in Authentication → Providers, flip this to true; handleApple is
+// already wired up and needs no other change.
+const APPLE_SIGN_IN_ENABLED = false;
+
 export default function Auth() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -191,16 +199,18 @@ export default function Auth() {
         </svg>
         Continue with Google
       </Button>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full h-12"
-        onClick={handleApple}
-        disabled={loading}
-      >
-        <Apple className="w-4 h-4 mr-2" />
-        Continue with Apple
-      </Button>
+      {APPLE_SIGN_IN_ENABLED && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full h-12"
+          onClick={handleApple}
+          disabled={loading}
+        >
+          <Apple className="w-4 h-4 mr-2" />
+          Continue with Apple
+        </Button>
+      )}
       <div className="relative my-2">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border" />
