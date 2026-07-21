@@ -13,6 +13,19 @@
   #   VITE_SUPABASE_URL
   #   VITE_SUPABASE_PUBLISHABLE_KEY
   #   VITE_SUPABASE_PROJECT_ID
+  #
+  # ONLY the five vars above plus SUPABASE_URL and SUPABASE_ANON_KEY belong in
+  # Netlify. Edge-function secrets (GEMINI_API_KEY, STRIPE_SECRET_KEY,
+  # HUBSPOT_*, SLACK_*, APPLE_SHARED_SECRET, FRONTEND_URL) live in Supabase
+  # → Edge Functions → Secrets. Declaring them here does nothing except put
+  # them in the secrets scanner's scope, which fails the build.
+  #
+  # SUPABASE_ANON_KEY holds the same publishable anon JWT as
+  # VITE_SUPABASE_PUBLISHABLE_KEY, which Vite inlines into the client bundle by
+  # design. It is safe to expose — it carries no privileges of its own and every
+  # table is guarded by RLS. Without this omission the scanner flags the bundle.
+  # Never add a genuinely private key (service_role, Stripe, OAuth secrets) here.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_ANON_KEY"
 
 # SPA fallback + header rules live in public/_redirects and public/_headers
 # so they are copied into dist/ on every build. Netlify serves real static
