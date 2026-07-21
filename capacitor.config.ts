@@ -7,8 +7,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // Add `server.url` only as a temporary live-reload convenience during local
 // development, and never commit it.
 const config: CapacitorConfig = {
-  appId: 'app.lovable.ae0d1a377afd4717a989caa75593f819',
-  appName: 'scanbusinesscard',
+  appId: 'app.scanbusinesscard.com',
+  appName: 'ScanBusinessCard',
   webDir: 'dist',
   ios: {
     contentInset: 'always',
