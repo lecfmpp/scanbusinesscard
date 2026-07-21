@@ -1,9 +1,16 @@
 /**
  * Native Apple Sign In shim.
  *
- * Web: returns false — caller should fall back to Lovable Cloud OAuth flow.
+ * Web: returns false — the caller falls back to supabase.auth.signInWithOAuth.
  * iOS: uses @capacitor-community/apple-sign-in (Apple's native UI), then exchanges
  *      the identity token for a Supabase session via signInWithIdToken.
+ *
+ * NOTE: `clientId` must equal the app's bundle id (see appId in
+ * capacitor.config.ts) and `redirectURI` must be registered as a Return URL on
+ * the Apple Services ID. `redirectURI` still points at the retired
+ * *.lovable.app domain and needs to move to https://scanbusinesscard.com/auth,
+ * which has to be changed in the Apple Developer console at the same time or
+ * Apple rejects the authorize call.
  */
 import { isNative, isIOS } from "./index";
 import { supabase } from "@/integrations/supabase/client";
