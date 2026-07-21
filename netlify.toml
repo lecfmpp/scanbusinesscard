@@ -20,12 +20,21 @@
   # → Edge Functions → Secrets. Declaring them here does nothing except put
   # them in the secrets scanner's scope, which fails the build.
   #
-  # SUPABASE_ANON_KEY holds the same publishable anon JWT as
-  # VITE_SUPABASE_PUBLISHABLE_KEY, which Vite inlines into the client bundle by
-  # design. It is safe to expose — it carries no privileges of its own and every
-  # table is guarded by RLS. Without this omission the scanner flags the bundle.
-  # Never add a genuinely private key (service_role, Stripe, OAuth secrets) here.
-  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_ANON_KEY"
+  # Every key below is public by design, so secrets scanning must not treat it
+  # as a leak:
+  #   * the project id (yvfutrzyckkeikwstovq) and project URL are plain
+  #     identifiers. They appear on purpose in supabase/config.toml, the /blog
+  #     edge function, and the public /.well-known/* discovery documents.
+  #   * the anon / publishable key is designed to ship to browsers. It carries
+  #     no privileges of its own and every table is guarded by RLS. Vite inlines
+  #     it into the client bundle, so it is unavoidably present in dist/.
+  # Without these omissions the scanner sees each value in the repo and fails
+  # the build.
+  #
+  # Never add a genuinely private value here — service_role key, Stripe key, or
+  # any OAuth client secret. Those belong in Supabase's edge function secrets
+  # and must never reach this repo, which is public.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_PROJECT_ID,VITE_SUPABASE_PUBLISHABLE_KEY,SUPABASE_URL,SUPABASE_ANON_KEY"
 
 # SPA fallback + header rules live in public/_redirects and public/_headers
 # so they are copied into dist/ on every build. Netlify serves real static
