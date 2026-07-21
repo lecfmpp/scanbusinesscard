@@ -17,6 +17,12 @@ const Footer = () => {
             <p className="text-sm text-secondary-foreground/70">
               The fastest way to turn business cards into actionable leads. Built for sales professionals.
             </p>
+            <Link
+              to="/blog"
+              className="inline-block mt-4 text-sm font-medium text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+            >
+              Blog
+            </Link>
           </div>
           
           {/* Compare */}
