@@ -1,25 +1,26 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet, useSearchParams } from "react-router-dom";
-import { Calendar, Users, Receipt, LogOut, Menu, X, Home, Link2, Settings } from "lucide-react";
+import { Calendar, Users, Receipt, LogOut, Home, Link2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import logoIcon from "@/assets/logo-icon.png";
 
+// `tabLabel` is the compact form for the mobile tab bar — five tabs have to fit
+// across a 390px screen, where "Integrations" would wrap or truncate.
 const navItems = [
-  { href: "/dashboard", icon: Calendar, label: "Events" },
-  { href: "/dashboard/leads", icon: Users, label: "All Leads" },
-  { href: "/dashboard/integrations", icon: Link2, label: "Integrations" },
-  { href: "/dashboard/billing", icon: Receipt, label: "Billing" },
-  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
+  { href: "/dashboard", icon: Calendar, label: "Events", tabLabel: "Events" },
+  { href: "/dashboard/leads", icon: Users, label: "All Leads", tabLabel: "Leads" },
+  { href: "/dashboard/integrations", icon: Link2, label: "Integrations", tabLabel: "Connect" },
+  { href: "/dashboard/billing", icon: Receipt, label: "Billing", tabLabel: "Billing" },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings", tabLabel: "Settings" },
 ];
 
 const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -136,9 +137,9 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b">
-        <div className="flex items-center justify-between p-4">
+      {/* Mobile header — pt-safe keeps it clear of the notch / status bar */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur border-b pt-safe">
+        <div className="flex items-center justify-between px-4 h-14">
           <Link to="/" className="flex items-center gap-2">
             <img src={logoIcon} alt="ScanBusinessCard" className="h-7 w-7" />
             <span className="font-bold">ScanBusinessCard</span>
@@ -146,56 +147,50 @@ const DashboardLayout = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={handleLogout}
+            aria-label="Log out"
           >
-            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
+      </header>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="border-t bg-card p-4 space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
-                  isActive(item.href)
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            ))}
-            <div className="border-t pt-2 mt-2">
-              <Link
-                to="/"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                <Home className="h-5 w-5" />
-                Back to Home
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"
-              >
-                <LogOut className="h-5 w-5" />
-                Logout
-              </button>
-            </div>
-          </div>
+      {/* Main content. The mobile offsets clear the fixed header above and the
+          tab bar below, both of which grow by the device's safe-area insets. */}
+      <main
+        className={cn(
+          "flex-1 overflow-auto p-4 md:p-8",
+          "pt-[calc(3.5rem+env(safe-area-inset-top)+1rem)] md:pt-8",
+          "pb-[calc(4rem+env(safe-area-inset-bottom)+1rem)] md:pb-8"
         )}
-      </div>
-
-      {/* Main Content */}
-      <main className="flex-1 md:p-8 p-4 pt-20 md:pt-8 overflow-auto">
+      >
         <Outlet />
       </main>
+
+      {/* Mobile tab bar. Replaces the hamburger drawer: primary navigation is
+          always one thumb-reach tap away, which is what iOS users expect. */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur border-t pb-safe">
+        <ul className="flex items-stretch">
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <li key={item.href} className="flex-1">
+                <Link
+                  to={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex h-16 flex-col items-center justify-center gap-1 transition-colors",
+                    active ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className={cn("h-5 w-5", active && "scale-110 transition-transform")} />
+                  <span className="text-[10px] font-medium leading-none">{item.tabLabel}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 };

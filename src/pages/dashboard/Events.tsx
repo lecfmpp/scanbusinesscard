@@ -157,10 +157,11 @@ const Events = () => {
           </div>
         )}
 
-        {/* Mobile FAB */}
+        {/* Mobile FAB. Offset clears the tab bar (h-16) plus the home indicator,
+            which the old bottom-6 sat directly on top of. */}
         <Button
           onClick={triggerScan}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg sm:hidden"
+          className="fixed right-6 bottom-[calc(4rem+env(safe-area-inset-bottom)+1rem)] h-14 w-14 rounded-full shadow-lg sm:hidden"
           size="icon"
         >
           <Camera className="h-6 w-6" />

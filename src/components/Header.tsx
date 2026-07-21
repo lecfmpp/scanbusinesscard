@@ -31,7 +31,7 @@ const Header = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-[hsl(var(--header-background))] backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b bg-[hsl(var(--header-background))] backdrop-blur-sm pt-safe">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="hover:opacity-80 transition-opacity flex items-center gap-2" onClick={closeMobileMenu}>

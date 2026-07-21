@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.png" type="image/png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to real
+         values on notched iPhones; without it they are all 0. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbf9f7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ScanBusinessCard" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
     <title>ScanBusinessCard - Bulk Business Card Scanner for Sales Pros</title>
     <meta name="description" content="Scan 20+ business cards in one photo. AI-powered extraction, instant CRM export to Slack, Google Sheets, or HubSpot. Never lose a lead from events again.">
     <meta name="author" content="ScanBusinessCard" />

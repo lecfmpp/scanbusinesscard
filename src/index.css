@@ -2,6 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  /* iOS safe areas. These depend on viewport-fit=cover in index.html —
+     without it every inset resolves to 0 and these become no-ops. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@layer base {
+  /* iOS auto-zooms the page whenever a focused field renders below 16px, which
+     leaves the layout scaled up after the keyboard closes. Holding mobile form
+     text at 16px avoids it without disabling pinch-zoom, which would be an
+     accessibility regression. */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+
+  /* App-shell feel, packaged app only. Long-press callout and text selection
+     are deliberately left alone so leads' emails and phone numbers stay
+     copyable. */
+  html.native {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.native,
+  html.native body {
+    overscroll-behavior-y: none;
+  }
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);

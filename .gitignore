@@ -20,6 +20,10 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Supabase CLI link state. Local-only artifacts of `supabase link`, and
+# pooler-url embeds connection details — keep them out of a public repo.
+supabase/.temp/
+
 # iOS code signing. The .cer and .certSigningRequest already sitting in the repo
 # root are harmless on their own, but a .p12 export carries the private key and
 # tends to land in the same folder. This repo is public — keep all of it out.
