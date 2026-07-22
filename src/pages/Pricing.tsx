@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { PricingCard } from "@/components/PricingCard";
@@ -5,6 +8,18 @@ import { Check } from "lucide-react";
 import SEO from "@/components/SEO";
 
 const Pricing = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Where Stripe returns an abandoned checkout. Landing back on the plans with
+  // an explicit "nothing was charged" is what stops the support email.
+  useEffect(() => {
+    if (searchParams.get("checkout") === "canceled") {
+      toast.info("Checkout canceled — you have not been charged.");
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO

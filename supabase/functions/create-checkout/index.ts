@@ -61,8 +61,12 @@ serve(async (req) => {
       subscription_data: {
         trial_period_days: 7,
       },
-      success_url: `${req.headers.get("origin")}/results?success=true`,
-      cancel_url: `${req.headers.get("origin")}/?canceled=true`,
+      // /results is not a route in this app — sending a paying customer there
+      // dropped them on the 404 page the instant their card was charged, which
+      // reads as a failed payment. Billing is the page that actually reflects
+      // the new subscription, and it syncs the row on arrival.
+      success_url: `${req.headers.get("origin")}/dashboard/billing?checkout=success`,
+      cancel_url: `${req.headers.get("origin")}/pricing?checkout=canceled`,
       metadata: {
         user_id: user.id,
         plan_type: planType,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +24,27 @@ const Billing = () => {
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
   const [iapLoading, setIapLoading] = useState<null | "monthly" | "yearly" | "restore">(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
+    // Stripe sends the customer back here after checkout. The subscriptions row
+    // is written by check-subscription, not by Stripe, so it does not exist yet
+    // at this moment — reading the table straight away would greet someone who
+    // just paid with "Free plan". Sync first, then read.
+    const checkout = searchParams.get("checkout");
+
+    if (checkout === "success") {
+      toast.success("You're subscribed! Welcome aboard.");
+      setSearchParams({}, { replace: true });
+      supabase.functions
+        .invoke("check-subscription")
+        .catch((err) => console.error("Post-checkout sync failed:", err))
+        .finally(fetchSubscription);
+      return;
+    }
+
     fetchSubscription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSubscription = async () => {
