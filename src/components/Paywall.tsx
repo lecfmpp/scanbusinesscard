@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative, isIOS } from "@/lib/platform";
 import { getApplePrices, purchaseApplePlan, restoreApplePurchases } from "@/lib/platform/iap";
+import { haptic } from "@/lib/platform/haptics";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -79,6 +80,7 @@ export function Paywall({
         // through In-App Purchase. The receipt is verified server-side by
         // verify-apple-iap, which is what actually flips the subscription on.
         await purchaseApplePlan(plan);
+        haptic("success");
         onPurchased?.();
         return;
       }

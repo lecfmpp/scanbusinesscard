@@ -6,6 +6,7 @@ import { isNative } from "@/lib/platform";
 import { pickImagesNative } from "@/lib/platform/camera";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Paywall } from "@/components/Paywall";
+import { haptic } from "@/lib/platform/haptics";
 
 interface BusinessCard {
   id: string;
@@ -107,10 +108,12 @@ export const useScanCards = () => {
       subscription.refresh();
 
       if (cards.length === 0) {
+        haptic("warning");
         toast.error("No business cards detected. Please try again with a clearer image.");
         return;
       }
 
+      haptic("success");
       toast.success(`Found ${cards.length} business card${cards.length !== 1 ? 's' : ''}!`);
       
       setPendingCards(cards);

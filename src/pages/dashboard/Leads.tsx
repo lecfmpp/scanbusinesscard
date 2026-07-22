@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Copy, Download, Save, Loader2, ArrowLeft, Users, Camera, ChevronDown, Search, Trash2 } from "lucide-react";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 import { useScanCards } from "@/hooks/useScanCards";
+import { Skeleton } from "@/components/ui/skeleton";
 import ScanningAnimation from "@/components/ScanningAnimation";
 import SignupModal from "@/components/SignupModal";
 import EventSelectModal from "@/components/EventSelectModal";
@@ -485,10 +486,28 @@ const Leads = () => {
 
   const cardToDelete = cards.find(c => c.id === deleteCardId);
 
+  // Skeleton rows mirror the lead accordion, so the list does not reflow when
+  // the data arrives.
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6 space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="mb-4 h-10 w-full rounded-md" />
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-lg border p-4">
+              <Skeleton className="h-4 w-4 rounded" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-4 w-4 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

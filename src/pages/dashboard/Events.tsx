@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Users, Plus, Loader2, Camera } from "lucide-react";
+import { Calendar, Users, Plus, Camera } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { useScanCards } from "@/hooks/useScanCards";
 import ScanningAnimation from "@/components/ScanningAnimation";
@@ -76,10 +77,25 @@ const Events = () => {
     }
   };
 
+  // Skeletons rather than a centred spinner: they hold the final layout, so the
+  // page settles into place instead of jumping when the data lands.
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8 space-y-2">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="mb-6 h-24 w-full rounded-xl" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-lg border p-6">
+              <Skeleton className="mb-4 h-12 w-12 rounded-xl" />
+              <Skeleton className="mb-3 h-5 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
